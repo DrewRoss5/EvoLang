@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add the executable
 add_executable(evo
     src/main.cpp
-    src/value.cpp
     src/lexer.cpp
+    src/instruction.cpp
+    src/parser.cpp
 )
 
 # Include directories for headers

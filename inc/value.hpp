@@ -2,32 +2,33 @@
 #define VALUE_H
 
 #include <string>
+#include <variant>
+#include <stdexcept>
 
 enum class ValueType{
     TYPE_INT,
     TYPE_BOOL,
     TYPE_CHAR,
     TYPE_STR,
+    TYPE_NAME,
+    TYPE_NULL,
+    TYPE_ADDRESS
 };
 
 class Value{
     private:
         ValueType _type;
-        union{
-            int _int_val;
-            bool _bool_val;
-            char _char_val;
-            std::string _str_val;
-        };
+        std::variant<int, bool, char, std::string> _val;
     public:
+        Value() : _type(ValueType::TYPE_NULL) {}
         template <typename T>
         Value(ValueType type, const T& value);
         template <typename T>
         void set_value(const T& value);
-        template <typename T>
-        T get_value();
+        const std::variant<int, bool, char, std::string>& get_value() {return this->_val;}
         ~Value(){};
         ValueType get_type() {return this->_type;}
+
 };
 
 template <typename T>
@@ -38,20 +39,7 @@ Value::Value(ValueType type, const T& value){
 
 template <typename T>
 void Value::set_value(const T& value){
-    switch (this->_type){
-        case ValueType::TYPE_INT:
-            this->_int_val = value;
-            break;
-        case ValueType::TYPE_BOOL:
-            this->_bool_val = value;
-            break;
-        case ValueType::TYPE_CHAR:
-            this->_char_val = value;
-            break;
-        case ValueType::TYPE_STR:
-            this->_str_val = value;
-            break;
-    }
+    this->_val = value;
 }
 
 #endif
