@@ -28,6 +28,7 @@ std::map<std::string, TokenType> token_map = {
     {"set", TokenType::INST_T},
     {"get", TokenType::INST_T},
     {"print", TokenType::INST_T},
+    {"println", TokenType::INST_T},
     {"read", TokenType::INST_T},
     {"readint", TokenType::INST_T},
     {"TRUE", TokenType::BOOL_T},

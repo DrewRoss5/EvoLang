@@ -29,6 +29,7 @@ class Value{
         static Value from_int(ValueType type, int val);
         ~Value(){};
         ValueType get_type() const {return this->_type;}
+        std::string to_string();
         bool is_intergral();
 
 };

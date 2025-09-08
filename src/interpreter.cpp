@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -172,17 +173,40 @@ void Interpreter::_var_op(const Instruction& inst){
 }
 
 void Interpreter::_io_op(const Instruction& inst){
-    throw std::logic_error("Instruction not implemented");
-    /*
+    Value val;
+    std::string str_in;
+    int num_in;
     switch (inst.op_code){
         case InstructionType::INST_PRINT:
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to print", this->_line_no));
+            val = this->stack_top();
+            std::cout << val.to_string();
+            break;
+        case InstructionType::INST_PRINTLN:
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to print", this->_line_no));
+            val = this->stack_top();
+            std::cout << val.to_string() << std::endl;
             break;
         case InstructionType::INST_READ:
+            std::getline(std::cin, str_in);
+            this->stack_push(Value(ValueType::TYPE_STR, str_in));
             break;
         case InstructionType::INST_READINT:
+            std::getline(std::cin, str_in);
+            try{
+                num_in = std::stoi(str_in);
+                this->stack_push(Value(ValueType::TYPE_INT, num_in));
+            }
+            catch (const std::invalid_argument & e) {
+                throw std::runtime_error(std::format("Error on line {}: Non-integer input recived for readint", this->_line_no));
+            }
+            catch (const std::out_of_range & e) {
+                throw std::runtime_error(std::format("Error on line {}: Out-of-range input recived for readint", this->_line_no));
+            }
             break;
     }
-            */
 }
 
 // INTERPRETER FUNCTIONS FOLLOW
@@ -244,6 +268,9 @@ Value Interpreter::run_expr(std::string expr){
     this->_parser.reset(tokens);
     this->_instructions = this->_parser.parse_expr();
     this->_run_bytecode();
+    if (this->_stack.empty())
+        return Value(ValueType::TYPE_NULL, "");
+    return this->stack_pop();
 }
 
 // runs a multiline program, treating each line as an expression. returns the top value remaining on the stack, or an empty value if the stack is empty
@@ -253,5 +280,8 @@ Value Interpreter::run_prog(std::stringstream program){
     this->_parser.reset();
     this->_instructions = this->_parser.parse_program(tokens);
     this->_run_bytecode();
+    if (this->_stack.empty())
+        return Value(ValueType::TYPE_NULL, "");
+    return this->stack_pop();
 }
 

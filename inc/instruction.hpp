@@ -27,6 +27,7 @@ enum class InstructionType{
     INST_GET,
     INST_SET,
     INST_PRINT,
+    INST_PRINTLN,
     INST_READ,
     INST_READINT
 };

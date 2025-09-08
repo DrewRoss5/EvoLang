@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <stdexcept>
+#include <string>
 #include "../inc/value.hpp"
 
 bool Value::is_intergral(){
@@ -24,6 +25,23 @@ Value Value::from_int(ValueType type, int val){
         case ValueType::TYPE_INT: return Value(type, val);
         case ValueType::TYPE_BOOL: return Value(type, static_cast<bool>(val));
         case ValueType::TYPE_CHAR: return Value(type, static_cast<char>(val));
+    }
+}
 
+// returns a string representation of the value, used for printing
+std::string Value::to_string(){
+    switch (this->_type){
+    case ValueType::TYPE_INT:
+        return std::to_string(std::get<int>(this->_val));
+    case ValueType::TYPE_STR:
+    case ValueType::TYPE_NAME:
+        return std::get<std::string>(this->_val);
+        break;
+    case ValueType::TYPE_BOOL:
+        return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
+    case ValueType::TYPE_CHAR:
+        return;
+    case ValueType::TYPE_NULL:
+        return "NULL";
     }
 }
