@@ -22,11 +22,13 @@ enum class InstructionType{
     INST_NEQ,
     INST_JUMP,
     INST_JUMPIF,
+    INST_CALL,
     INST_RET,
     INST_GET,
     INST_SET,
     INST_PRINT,
-    INST_READ
+    INST_READ,
+    INST_READINT
 };
 
 struct Instruction{

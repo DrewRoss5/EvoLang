@@ -23,11 +23,13 @@ std::map<std::string, TokenType> token_map = {
     {"neq", TokenType::INST_T},
     {"j", TokenType::INST_T},
     {"jif", TokenType::INST_T},
+    {"call", TokenType::INST_T},
     {"ret", TokenType::INST_T},
     {"set", TokenType::INST_T},
     {"get", TokenType::INST_T},
     {"print", TokenType::INST_T},
     {"read", TokenType::INST_T},
+    {"readint", TokenType::INST_T},
     {"TRUE", TokenType::BOOL_T},
     {"FALSE", TokenType::BOOL_T}
 };

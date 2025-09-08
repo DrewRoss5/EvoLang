@@ -25,11 +25,13 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"neq", InstructionType::INST_NEQ},
     {"j", InstructionType::INST_JUMP},
     {"jif", InstructionType::INST_JUMPIF},
+    {"call", InstructionType::INST_CALL},
     {"ret", InstructionType::INST_RET},
     {"set", InstructionType::INST_SET},
     {"get", InstructionType::INST_GET},
     {"print", InstructionType::INST_PRINT},
-    {"read", InstructionType::INST_READ}
+    {"read", InstructionType::INST_READ},
+    {"readint", InstructionType::INST_READINT}
 };
 
 // parses a literal expression, evaluates the value and creates a push instruction for it 

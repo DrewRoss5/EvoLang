@@ -12,7 +12,6 @@ enum class ValueType{
     TYPE_STR,
     TYPE_NAME,
     TYPE_NULL,
-    TYPE_ADDRESS
 };
 
 class Value{
@@ -25,9 +24,12 @@ class Value{
         Value(ValueType type, const T& value);
         template <typename T>
         void set_value(const T& value);
-        const std::variant<int, bool, char, std::string>& get_value() {return this->_val;}
+        const std::variant<int, bool, char, std::string>& get_value() const {return this->_val;}
+        int as_int();
+        static Value from_int(ValueType type, int val);
         ~Value(){};
-        ValueType get_type() {return this->_type;}
+        ValueType get_type() const {return this->_type;}
+        bool is_intergral();
 
 };
 
@@ -41,5 +43,7 @@ template <typename T>
 void Value::set_value(const T& value){
     this->_val = value;
 }
+
+
 
 #endif

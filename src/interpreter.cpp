@@ -1,0 +1,257 @@
+#include <vector>
+#include <string>
+#include <sstream>
+#include <stdexcept>
+#include <format>
+#include "../inc/parser.hpp"
+#include "../inc/value.hpp"
+#include "../inc/lexer.hpp"
+#include "../inc/instruction.hpp"
+#include "../inc/interpreter.hpp"
+
+// STACK INSTRUCTIONS FOLLOW
+// pushes a value on to the top of stack
+void Interpreter::stack_push(const Value& val){
+    this->_stack.push_back(val);
+}
+
+// duplicates the top value of the stack
+void Interpreter::stack_dup(){
+    if (this->_stack.empty())
+        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
+    Value val = this->_stack.back();
+    this->_stack.push_back(val);
+}
+
+// returns a constant reference to the top value of the stack
+const Value& Interpreter::stack_top(){
+    if (this->_stack.empty())
+        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
+    return this->_stack.back();
+}
+
+// pops the top value off the stack and returns it
+Value Interpreter::stack_pop(){
+    if (this->_stack.empty())
+        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
+    Value val = this->_stack.back();
+    this->_stack.pop_back();
+    return val;
+}
+
+// PROGRAM INSTRUCTIONS FOLLOW
+// runs an arithmetic operation
+void Interpreter::_arith_op(const Instruction& inst){
+    // ensure there at least two values on the stack to pop
+    if (this->_stack.size() < 2)
+        throw std::runtime_error(std::format("Error on line {}: arithmetic operations require at least two values on the stack", this->_line_no));
+    Value right_val = this->stack_pop();
+    Value left_val = this->stack_pop();
+    // ensure values match and are of the right type
+    if (right_val.get_type() != left_val.get_type())
+        throw std::runtime_error(std::format("Error on line {}: arithmetic cannot be performed on mismatch types", this->_line_no));
+    if (right_val.get_type() != ValueType::TYPE_INT)
+        throw std::runtime_error(std::format("Error on line {}: invalid type for arithmetic operation", this->_line_no));
+    int rhs {std::get<int>(right_val.get_value())}, lhs {std::get<int>(left_val.get_value())}, retval;
+    switch (inst.op_code){
+    case InstructionType::INST_ADD:
+        retval = lhs + rhs;
+        break;
+    case InstructionType::INST_SUB:
+        retval = lhs - rhs;
+        break;
+    case InstructionType::INST_MUL:
+        retval = lhs * rhs;
+        break;
+    case InstructionType::INST_DIV:
+        retval = lhs / rhs;
+        break;
+    case InstructionType::INST_MOD:
+        retval = lhs % rhs;
+        break;
+    }
+    Value result = Value(ValueType::TYPE_INT, retval);
+    this->stack_push(result);
+}
+
+// runs a logical operation
+void Interpreter::_logic_op(const Instruction& inst){
+    // ensure there at least two values on the stack to pop
+    if (this->_stack.size() < 2)
+        throw std::runtime_error(std::format("Error on line {}: logical operations require at least two values on the stack", this->_line_no));
+    Value right_val = this->stack_pop();
+    Value left_val = this->stack_pop();
+    // ensure values match and are of an integral type
+    if (right_val.get_type() != left_val.get_type())
+        throw std::runtime_error(std::format("Error on line {}: logical operations cannot be performed on mismatch types", this->_line_no));
+    if (!right_val.is_intergral())
+        throw std::runtime_error(std::format("Error on line {}: invalid type for logical operation", this->_line_no));
+    int lhs {left_val.as_int()}, rhs {right_val.as_int()}, retval;
+    switch (inst.op_code){
+        case InstructionType::INST_AND:
+            retval = lhs & rhs;
+            break;
+        case InstructionType::INST_OR:
+            retval = lhs | rhs;
+            break;
+        case InstructionType::INST_XOR:
+            retval = lhs ^ rhs;
+            break;
+    }
+    this->stack_push(Value::from_int(left_val.get_type(), retval));
+}
+
+// runs a logical not operation 
+void Interpreter::_not_op(const Instruction& inst){
+    // ensure there is at least one item on the stack
+    if (this->_stack.size() < 1)
+        throw std::runtime_error(std::format("Error on line {}: No stack data for not operation", this->_line_no));
+    Value val = this->stack_pop();
+    if (!val.is_intergral())
+        throw std::runtime_error(std::format("Error on line {}: invalid type for NOT operation", this->_line_no));
+    int data = val.as_int();
+    bool result = (data != 0);
+    this->stack_push(Value(ValueType::TYPE_BOOL, result));
+}
+
+// runs a jump operation
+void Interpreter::_jump_op(const Instruction& inst){
+    Value addr_val, condition_val;
+    int addr;
+    switch (inst.op_code){
+        case InstructionType::INST_JUMP:
+        case InstructionType::INST_CALL:
+            if (inst.op_code == InstructionType::INST_RET)
+                this->return_addr = this->_next_op;
+            // ensure a return address is valid and provided
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: No stack data for jump address", this->_line_no));
+            addr_val = this->stack_pop();
+            if (addr_val.get_type() != ValueType::TYPE_INT)
+                throw std::runtime_error(std::format("Error on line {}: Invalid stack data type for jump address", this->_line_no));
+            addr = addr_val.as_int();
+            if (addr > this->_instructions.size())
+                throw std::runtime_error(std::format("Error on line {}: Invalid jump address", this->_line_no));
+            // update the next operation address (the subtraction is to account for the fact that the address will be incremented in the calling function)
+            this->_next_op = addr - 1;
+            break;
+        case InstructionType::INST_RET:
+            // no validation is needed, as the return address can only be set by the above case, if no address is set, this will restart the program
+            this->_next_op = return_addr - 1;
+            break;
+        case InstructionType::INST_JUMPIF:
+             if (this->_stack.size() < 2)
+                throw std::runtime_error(std::format("Error on line {}: Not enough stack data for jump instruction", this->_line_no));
+            addr_val = this->stack_pop();
+            if (addr_val.get_type() != ValueType::TYPE_INT)
+                throw std::runtime_error(std::format("Error on line {}: Invalid stack data type for jump address", this->_line_no));
+            addr = addr_val.as_int();
+            if (addr > this->_instructions.size())
+                throw std::runtime_error(std::format("Error on line {}: Invalid jump address", this->_line_no));
+    }
+}
+
+void Interpreter::_var_op(const Instruction& inst){
+    Value val;
+    std::string var_name;
+    switch (inst.op_code){
+        case InstructionType::INST_SET:
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to assign variable", this->_line_no));
+            val = this->stack_pop();
+            this->_vars[std::get<std::string>(inst.arg.value().get_value())] = val;
+            break;
+        case InstructionType::INST_GET:
+            var_name = std::get<std::string>(inst.arg.value().get_value());
+            if (!this->_vars.count(var_name))
+                throw std::runtime_error(std::format("Error on line {}: Variable \"{}\" is undeclared", this->_line_no, var_name));
+            val = this->_vars.at(var_name);
+            this->stack_push(val);
+            break;
+    }
+}
+
+void Interpreter::_io_op(const Instruction& inst){
+    throw std::logic_error("Instruction not implemented");
+    /*
+    switch (inst.op_code){
+        case InstructionType::INST_PRINT:
+            break;
+        case InstructionType::INST_READ:
+            break;
+        case InstructionType::INST_READINT:
+            break;
+    }
+            */
+}
+
+// INTERPRETER FUNCTIONS FOLLOW
+// runs a list of instrunctions produced by the parser
+void Interpreter::_run_bytecode(){
+    Instruction inst;
+    while (this->_next_op < this->_instructions.size()){
+        inst = this->_instructions[this->_next_op];
+        switch (inst.op_code){
+            case InstructionType::INST_POP:
+                this->stack_pop();
+                break;
+            case InstructionType::INST_DUP:
+                this->stack_dup();
+                break;
+            case InstructionType::INST_PUSH:
+                if (!inst.arg.has_value())
+                    throw std::runtime_error(std::format("Error on line {}: illegal instruction", this->_line_no));
+                this->stack_push(inst.arg.value());
+                break;
+            case InstructionType::INST_ADD:
+            case InstructionType::INST_SUB:
+            case InstructionType::INST_MUL:
+            case InstructionType::INST_DIV:
+            case InstructionType::INST_MOD:
+                this->_arith_op(inst);
+                break;
+            case InstructionType::INST_AND:
+            case InstructionType::INST_OR:
+            case InstructionType::INST_XOR:
+                this->_logic_op(inst);
+                break;
+            case InstructionType::INST_NOT:
+                this->_not_op(inst);
+                break;
+            case InstructionType::INST_JUMP:
+            case InstructionType::INST_JUMPIF:
+            case InstructionType::INST_CALL:
+            case InstructionType::INST_RET:
+                this->_jump_op(inst);
+                break;
+            case InstructionType::INST_GET:
+            case InstructionType::INST_SET:
+                this->_var_op(inst);
+                break;
+            case InstructionType::INST_PRINT:
+            case InstructionType::INST_READ:
+            case InstructionType::INST_READINT:
+                this->_io_op(inst);
+                break;
+        }
+        this->_next_op++;
+    }
+}
+
+// runs a single expression, and returns the top value remaining on the stack, or an empty value if the stack is empty
+Value Interpreter::run_expr(std::string expr){
+    std::vector<Token> tokens = tokenize_expr(expr);
+    this->_parser.reset(tokens);
+    this->_instructions = this->_parser.parse_expr();
+    this->_run_bytecode();
+}
+
+// runs a multiline program, treating each line as an expression. returns the top value remaining on the stack, or an empty value if the stack is empty
+// TODO: Make this keep track of line number
+Value Interpreter::run_prog(std::stringstream program){
+    std::vector<std::vector<Token>> tokens = tokenize_program(program);
+    this->_parser.reset();
+    this->_instructions = this->_parser.parse_program(tokens);
+    this->_run_bytecode();
+}
+
