@@ -1,0 +1,10 @@
+println "Hello, World!"
+pop
+add 111 222
+set x
+mul 2 x
+println
+pop
+# This should display
+# "Hello, World!"
+# 666

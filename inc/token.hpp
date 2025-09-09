@@ -10,6 +10,7 @@ enum class TokenType{
     BOOL_T,
     INST_T,
     WORD_T,
+    LABEL_T,
     NULL_T
 };
 

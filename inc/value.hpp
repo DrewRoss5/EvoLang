@@ -31,6 +31,8 @@ class Value{
         ValueType get_type() const {return this->_type;}
         std::string to_string();
         bool is_intergral();
+        bool operator==(const Value& rhs);
+        bool operator!=(const Value& rhs);
 
 };
 

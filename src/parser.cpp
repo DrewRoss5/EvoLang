@@ -30,6 +30,7 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"set", InstructionType::INST_SET},
     {"get", InstructionType::INST_GET},
     {"print", InstructionType::INST_PRINT},
+    {"println", InstructionType::INST_PRINTLN},
     {"read", InstructionType::INST_READ},
     {"readint", InstructionType::INST_READINT}
 };
@@ -56,6 +57,7 @@ void Parser::parse_literal(const Token& token){
             break;
     }
     this->_instructions.emplace_back(InstructionType::INST_PUSH, val);
+    this->_inst_no++;
 }
 
 // parses a non-keyword name, checking the next token to determine how to handle it
@@ -71,12 +73,16 @@ void Parser::parse_word(const Token& token){
             throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
         this->_word_stack.push_back(token.text);
     }
-    // the next token is unknown, and we assume this is an implicit get
+    // the next token is unknown, and we assume this is an implicit get if its a variable, otherwise, we assume that it's a label
     else{
-        if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
-            throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
-        Value name_val(ValueType::TYPE_NAME, token.text);
-        this->_instructions.emplace_back(InstructionType::INST_GET, name_val);
+        // parse the word as a variable if declared
+        if (std::find(this->_vars.begin(), this->_vars.end(), token.text) != this->_vars.end()){
+            Value name_val(ValueType::TYPE_NAME, token.text);
+            this->_instructions.emplace_back(InstructionType::INST_GET, name_val);
+            this->_inst_no++;
+        }
+        // parse the word as a label (simply push it to the word stack)
+        this->_word_stack.push_back(token.text);
     }
 }
 
@@ -84,7 +90,7 @@ void Parser::parse_word(const Token& token){
 void Parser::parse_inst(const Token& token){
     InstructionType op_code = inst_map.at(token.text);
     Value arg_val;
-    std::string var_name;
+    std::string var_name, label_name;
     switch (op_code){
         case InstructionType::INST_PUSH:
             // at the moment, the explicit PUSH command is only sugar, so we can ignore it, as values are already implicitly pushed
@@ -100,24 +106,48 @@ void Parser::parse_inst(const Token& token){
                 throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
             arg_val = Value(ValueType::TYPE_NAME, var_name);
             this->_instructions.emplace_back(op_code, arg_val);
-
+            this->_inst_no++;
+            break;
         case InstructionType::INST_SET:
             if (_word_stack.empty())
                 throw std::runtime_error(std::format("Error on line {}: expected an identifier" , this->_line_no));
             var_name = this->_word_stack.back();
             this->_word_stack.pop_back(); 
             arg_val = Value(ValueType::TYPE_NAME, var_name);
-            this->_instructions.emplace_back(op_code, arg_val);
+            this->_instructions.emplace_back(InstructionType::INST_SET, arg_val);
+            this->_inst_no++;
             // add the variable name to the list of declared variables if not already decleared
             if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
                 this->_vars.push_back(var_name);
             break;
+        case InstructionType::INST_JUMP:
+        case InstructionType::INST_CALL:
+        case InstructionType::INST_JUMPIF:
+            if (this->_word_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: Jump statement must have label", this->_line_no));
+            label_name = this->_word_stack.back();
+            this->_word_stack.pop_back();
+            // check if the label is already defined, and assign the direct instruction number if so
+            if (this->_labels.count(token.text))
+                arg_val = Value(ValueType::TYPE_INT, this->_labels[label_name]);
+            else
+                arg_val = Value(ValueType::TYPE_STR, label_name);
+            this->_instructions.emplace_back(op_code, arg_val);
+            this->_inst_no++;
+            break;
         default:
             // the instruction is a "simple" instruction which takes no argument
             this->_instructions.emplace_back(op_code);
+            this->_inst_no++;
             break;
 
     }
+}
+
+void Parser::parse_label(const Token& token){
+    if (this->_labels.count(token.text))
+        throw std::runtime_error(std::format("Error on line {}: redeclaration of label \"{}\"" , this->_line_no, token.text));
+    this->_labels[token.text] = this->_inst_no - 1;
 }
 
 // parses the instructions for a single expression in reverse ordeer
@@ -139,6 +169,9 @@ std::vector<Instruction> Parser::parse_expr(){
             case TokenType::INST_T:
                 this->parse_inst(token);
                 break;
+            case TokenType::LABEL_T:
+                this->parse_label(token);
+                break;
         }
     }
     return this->_instructions;
@@ -151,12 +184,27 @@ std::vector<Instruction> Parser::parse_program(std::vector<std::vector<Token>>& 
         this->_tokens = statement;
         this->parse_expr();
     }
+    // read through all instructions to find if there are any jumps with unresolved labels, and resolve them if so
+    // TODO: Find a more efficient way to do this
+    Value label_no;
+    std::string label_str;
+    for (int i = 0; i < this->_instructions.size(); i++){
+        if (this->_instructions[i].op_code == InstructionType::INST_JUMP || this->_instructions[i].op_code == InstructionType::INST_CALL || this->_instructions[i].op_code == InstructionType::INST_JUMPIF)
+            if (this->_instructions[i].arg.value().get_type() == ValueType::TYPE_STR){
+                label_str = std::get<std::string>(this->_instructions[i].arg.value().get_value());
+                if (!this->_labels.count(label_str))
+                    throw std::runtime_error(std::format("Error: use of undeclared label"));
+                label_no = Value(ValueType::TYPE_INT, this->_labels[label_str]);
+                this->_instructions[i].set_arg(label_no);
+            }
+    }
     return this->_instructions;
 }
 
 // resets the parser's state entirely
 void Parser::reset(){
     this->_line_no = 0;
+    this->_inst_no = 0;
     this->_vars.clear();
     this->_word_stack.clear();
     this->_instructions.clear();
@@ -167,9 +215,9 @@ void Parser::reset(){
 // resets the parser's state, and sets its tokens to the provided vector
 void Parser::reset(const std::vector<Token>& tokens){
     this->_line_no = 0;
+    this->_inst_no = 0;
     this->_vars.clear();
     this->_word_stack.clear();
     this->_instructions.clear();
     this->_tokens = tokens;
 }
-

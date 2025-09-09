@@ -29,9 +29,11 @@ class Interpreter{
         Value stack_pop();
         void stack_push(const Value& val);
         void stack_dup();
+        size_t stack_size() {return this->_stack.size();}
         const Value& stack_top();
         Value run_expr(std::string expr);
-        Value run_prog(std::stringstream program);
+        Value run_prog(std::stringstream& program);
+        void reset_state();
 };
 
 #endif

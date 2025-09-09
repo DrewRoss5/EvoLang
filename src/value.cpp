@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 #include "../inc/value.hpp"
 
 bool Value::is_intergral(){
@@ -16,7 +17,12 @@ bool Value::is_intergral(){
 int Value::as_int(){
     if (!this->is_intergral())
         throw std::runtime_error("Cannot convert non-integral type to int");
-    return std::get<int>(this->_val);
+    switch (this->_type){
+        case ValueType::TYPE_INT: return std::get<int>(this->_val);
+        case ValueType::TYPE_CHAR: return static_cast<int>(std::get<char>(this->_val));
+        case ValueType::TYPE_BOOL: return static_cast<int>(std::get<bool>(this->_val));
+    }
+    
 }
 
 // creates any integral type Value from an integer 
@@ -26,22 +32,34 @@ Value Value::from_int(ValueType type, int val){
         case ValueType::TYPE_BOOL: return Value(type, static_cast<bool>(val));
         case ValueType::TYPE_CHAR: return Value(type, static_cast<char>(val));
     }
+    return Value(ValueType::TYPE_NULL, "");
 }
 
 // returns a string representation of the value, used for printing
 std::string Value::to_string(){
     switch (this->_type){
-    case ValueType::TYPE_INT:
-        return std::to_string(std::get<int>(this->_val));
-    case ValueType::TYPE_STR:
-    case ValueType::TYPE_NAME:
-        return std::get<std::string>(this->_val);
-        break;
-    case ValueType::TYPE_BOOL:
-        return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
-    case ValueType::TYPE_CHAR:
-        return;
-    case ValueType::TYPE_NULL:
-        return "NULL";
+        case ValueType::TYPE_INT:
+            return std::to_string(std::get<int>(this->_val));
+        case ValueType::TYPE_STR:
+        case ValueType::TYPE_NAME:
+            return std::get<std::string>(this->_val);
+            break;
+        case ValueType::TYPE_BOOL:
+            return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
+        case ValueType::TYPE_CHAR:
+            return "" + std::get<char>(this->_val);
+        case ValueType::TYPE_NULL:
+            return "NULL";
     }
+    return "ERROR TYPE";
+}
+
+bool Value::operator==(const Value& rhs){
+    if (this->_type != rhs._type)
+        return false;
+    return this->_val == rhs._val;
+}
+
+bool Value::operator!=(const Value& rhs){
+    return !(*this == rhs);
 }

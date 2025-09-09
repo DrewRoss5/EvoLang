@@ -46,10 +46,12 @@ std::vector<std::string> split_str(std::string& str, char delim = ' '){
             break;
         tmp = str.substr(0, delim_pos);
         str = str.substr(delim_pos + 1);
-        out.push_back(tmp);
+        if (tmp.length() > 0)
+            out.push_back(tmp);
     }
-    // push the last segment (not followed by a space) to the output vectpr
-    out.push_back(str);
+    // push the last segment (not followed by a space) to the output vector
+    if (str.length() > 0)
+        out.push_back(str);
     return out;
 }
 
@@ -106,6 +108,9 @@ std::vector<Token> tokenize_expr(std::string& expr){
             Token tmp(TokenType::CHAR_T, "");
             tmp.text.push_back(parse_char(word));
             tokens.push_back(tmp);
+        }
+        else if (word.back() == ':'){
+            tokens.emplace_back(TokenType::LABEL_T, word.substr(0, word.size() - 1));
         }
         // all other tokens are generic "words", to be handled by the parser
         else

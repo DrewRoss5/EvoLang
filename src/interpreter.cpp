@@ -88,6 +88,7 @@ void Interpreter::_logic_op(const Instruction& inst){
     if (!right_val.is_intergral())
         throw std::runtime_error(std::format("Error on line {}: invalid type for logical operation", this->_line_no));
     int lhs {left_val.as_int()}, rhs {right_val.as_int()}, retval;
+    bool eqval;
     switch (inst.op_code){
         case InstructionType::INST_AND:
             retval = lhs & rhs;
@@ -98,7 +99,13 @@ void Interpreter::_logic_op(const Instruction& inst){
         case InstructionType::INST_XOR:
             retval = lhs ^ rhs;
             break;
-    }
+        case InstructionType::INST_NEQ:
+        case InstructionType::INST_EQ:
+            // this is some black magic
+            eqval = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 13);
+            this->stack_push(Value(ValueType::TYPE_BOOL, eqval));
+            return;
+    }  
     this->stack_push(Value::from_int(left_val.get_type(), retval));
 }
 
@@ -117,38 +124,26 @@ void Interpreter::_not_op(const Instruction& inst){
 
 // runs a jump operation
 void Interpreter::_jump_op(const Instruction& inst){
-    Value addr_val, condition_val;
+    Value condition_val;
     int addr;
     switch (inst.op_code){
         case InstructionType::INST_JUMP:
         case InstructionType::INST_CALL:
-            if (inst.op_code == InstructionType::INST_RET)
+            if (inst.op_code == InstructionType::INST_CALL)
                 this->return_addr = this->_next_op;
-            // ensure a return address is valid and provided
-            if (this->_stack.empty())
-                throw std::runtime_error(std::format("Error on line {}: No stack data for jump address", this->_line_no));
-            addr_val = this->stack_pop();
-            if (addr_val.get_type() != ValueType::TYPE_INT)
-                throw std::runtime_error(std::format("Error on line {}: Invalid stack data type for jump address", this->_line_no));
-            addr = addr_val.as_int();
-            if (addr > this->_instructions.size())
-                throw std::runtime_error(std::format("Error on line {}: Invalid jump address", this->_line_no));
-            // update the next operation address (the subtraction is to account for the fact that the address will be incremented in the calling function)
-            this->_next_op = addr - 1;
+            this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
             break;
         case InstructionType::INST_RET:
             // no validation is needed, as the return address can only be set by the above case, if no address is set, this will restart the program
             this->_next_op = return_addr - 1;
             break;
         case InstructionType::INST_JUMPIF:
-             if (this->_stack.size() < 2)
-                throw std::runtime_error(std::format("Error on line {}: Not enough stack data for jump instruction", this->_line_no));
-            addr_val = this->stack_pop();
-            if (addr_val.get_type() != ValueType::TYPE_INT)
-                throw std::runtime_error(std::format("Error on line {}: Invalid stack data type for jump address", this->_line_no));
-            addr = addr_val.as_int();
-            if (addr > this->_instructions.size())
-                throw std::runtime_error(std::format("Error on line {}: Invalid jump address", this->_line_no));
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: no value to evaluate for jif instruction", this->_line_no));
+            condition_val = this->stack_pop();
+            if (condition_val.as_int())
+                this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
+            break;
     }
 }
 
@@ -237,6 +232,8 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_AND:
             case InstructionType::INST_OR:
             case InstructionType::INST_XOR:
+            case InstructionType::INST_EQ:
+            case InstructionType::INST_NEQ:
                 this->_logic_op(inst);
                 break;
             case InstructionType::INST_NOT:
@@ -253,6 +250,7 @@ void Interpreter::_run_bytecode(){
                 this->_var_op(inst);
                 break;
             case InstructionType::INST_PRINT:
+            case InstructionType::INST_PRINTLN:
             case InstructionType::INST_READ:
             case InstructionType::INST_READINT:
                 this->_io_op(inst);
@@ -264,6 +262,7 @@ void Interpreter::_run_bytecode(){
 
 // runs a single expression, and returns the top value remaining on the stack, or an empty value if the stack is empty
 Value Interpreter::run_expr(std::string expr){
+    this->_next_op = 0;
     std::vector<Token> tokens = tokenize_expr(expr);
     this->_parser.reset(tokens);
     this->_instructions = this->_parser.parse_expr();
@@ -275,7 +274,8 @@ Value Interpreter::run_expr(std::string expr){
 
 // runs a multiline program, treating each line as an expression. returns the top value remaining on the stack, or an empty value if the stack is empty
 // TODO: Make this keep track of line number
-Value Interpreter::run_prog(std::stringstream program){
+Value Interpreter::run_prog(std::stringstream& program){
+    this->_next_op = 0;
     std::vector<std::vector<Token>> tokens = tokenize_program(program);
     this->_parser.reset();
     this->_instructions = this->_parser.parse_program(tokens);
@@ -285,3 +285,12 @@ Value Interpreter::run_prog(std::stringstream program){
     return this->stack_pop();
 }
 
+// resets the interpreter's state
+void Interpreter::reset_state(){
+    this->return_addr = 0;
+    this->_line_no = 0;
+    this->_next_op = 0;
+    this->_parser.reset();
+    this->_instructions.clear();
+    this->_vars.clear();
+}

@@ -18,8 +18,8 @@ enum class InstructionType{
     INST_OR,
     INST_XOR,
     INST_NOT,
-    INST_EQ,
     INST_NEQ,
+    INST_EQ,
     INST_JUMP,
     INST_JUMPIF,
     INST_CALL,
@@ -38,6 +38,7 @@ struct Instruction{
     Instruction() : op_code(InstructionType::INST_NULL) {};
     Instruction(InstructionType op_code);
     Instruction(InstructionType op_code, const Value& arg);
+    void set_arg(const Value& new_arg) {this->arg = new_arg;}
 };
 
 #endif
