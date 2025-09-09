@@ -1,0 +1,10 @@
+# this program was made to test the read instructions, it reads in a string and a number (n), and prints the string n times
+print_p "String to print: " 
+set str read
+print_p "Times to print: "
+readint 
+loop: push str
+    println_p 
+    sub 1
+    dup
+    jif loop neq 0
