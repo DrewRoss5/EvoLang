@@ -31,6 +31,8 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"get", InstructionType::INST_GET},
     {"print", InstructionType::INST_PRINT},
     {"println", InstructionType::INST_PRINTLN},
+    {"print_p", InstructionType::INST_PRINT},
+    {"println_p", InstructionType::INST_PRINTLN},
     {"read", InstructionType::INST_READ},
     {"readint", InstructionType::INST_READINT}
 };
@@ -134,6 +136,16 @@ void Parser::parse_inst(const Token& token){
                 arg_val = Value(ValueType::TYPE_STR, label_name);
             this->_instructions.emplace_back(op_code, arg_val);
             this->_inst_no++;
+            break;
+        case InstructionType::INST_PRINT:
+        case InstructionType::INST_PRINTLN:
+            this->_instructions.emplace_back(op_code);
+            this->_inst_no++;
+            // check if this is a print and pop command
+            if (token.text.ends_with("_p")){
+                this->_instructions.emplace_back(InstructionType::INST_POP);
+                this->_inst_no++;
+            }
             break;
         default:
             // the instruction is a "simple" instruction which takes no argument

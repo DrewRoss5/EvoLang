@@ -1,13 +1,18 @@
 set x 3                         
-add 2 2                              # push 2 + 2 to the stack
-mul 2 2                              # push 2 * 2 to the stack
-jif taken1 eq                        # Jump to taken1, if the previous two stack results values are equal (we really need to add named labels for jumps...)
+                                               # push 2 + 2 to the stack
+                                               # push 2 * 2 to the stack
+
+jif taken1 eq mul 2 2 add 2 2                  # jump to taken1, if the previous two stack results values are equal
 println "Branch not taken"      
+
 taken1: push "Branch taken" 
 println 
-jif taken2 neq x 3                       # jump to taken2 if x != 3
+
+jif taken2 neq x 3                            # jump to taken2 if x != 3
 println "Branch Not taken"
 j exit
+
 taken2: push "Branch Taken"
 println
+
 exit: pop

@@ -29,6 +29,8 @@ std::map<std::string, TokenType> token_map = {
     {"get", TokenType::INST_T},
     {"print", TokenType::INST_T},
     {"println", TokenType::INST_T},
+    {"print_p", TokenType::INST_T},
+    {"println_p", TokenType::INST_T},
     {"read", TokenType::INST_T},
     {"readint", TokenType::INST_T},
     {"TRUE", TokenType::BOOL_T},
@@ -92,7 +94,8 @@ std::vector<Token> tokenize_expr(std::string& expr){
             tokens.emplace_back(TokenType::INT_T, word);
         // check if the word is a string and parse it if so
         else if (word[0] == '"'){
-            while (word.back() != '"'){
+            // word size checked here to account for the possibility of a string starting with 
+            while (word.back() != '"' || word.size() == 1){
                 // we're at the end of the statement with an unterminated string literal
                 if (word.size() == (i + 1))
                     throw std::runtime_error("Unterminated string literal");
