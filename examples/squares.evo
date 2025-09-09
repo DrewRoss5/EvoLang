@@ -1,11 +1,11 @@
 # this program displays the square of every number up to 100
-set ctr 1
-push 1
-loop:
-print_p ctr
-print_p " -> "
-mul dup ctr                 # calculate the square of ctr
-println                     # print the square
-pop                         # pop the square from the stack
-set ctr add 1 ctr
+set ctr 0
+
+loop: push ctr
+    print_p 
+    print_p " -> "
+    mul dup ctr                 # calculate the square of ctr
+    println                     # print the square
+    pop                         # pop the square from the stack
+    set ctr add 1 ctr
 jif loop neq ctr 101

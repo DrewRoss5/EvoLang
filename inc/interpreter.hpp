@@ -17,7 +17,9 @@ class Interpreter{
         Parser _parser;
         size_t _line_no {0};
         size_t _next_op {0};
-        size_t return_addr {0};
+        std::vector<size_t> _return_addrs;
+        size_t _pop_return();
+        void _push_return(size_t );
         void _run_bytecode();
         void _arith_op(const Instruction& inst);
         void _logic_op(const Instruction& inst);

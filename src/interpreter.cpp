@@ -10,6 +10,8 @@
 #include "../inc/instruction.hpp"
 #include "../inc/interpreter.hpp"
 
+
+
 // STACK INSTRUCTIONS FOLLOW
 // pushes a value on to the top of stack
 void Interpreter::stack_push(const Value& val){
@@ -22,6 +24,20 @@ void Interpreter::stack_dup(){
         throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
     Value val = this->_stack.back();
     this->_stack.push_back(val);
+}
+
+// CALL STACK FUNTIONS FOLLOW
+// pops the top address off the call stack, or returns 0 if empty
+size_t Interpreter::_pop_return(){
+    if (this->_return_addrs.empty())
+        return 0;
+    size_t ret_val = _return_addrs.back();
+    _return_addrs.pop_back();
+    return ret_val;
+}
+
+void Interpreter::_push_return(size_t addr){
+    this->_return_addrs.push_back(addr);
 }
 
 // returns a constant reference to the top value of the stack
@@ -130,12 +146,12 @@ void Interpreter::_jump_op(const Instruction& inst){
         case InstructionType::INST_JUMP:
         case InstructionType::INST_CALL:
             if (inst.op_code == InstructionType::INST_CALL)
-                this->return_addr = this->_next_op + 1;
+                this->_push_return(this->_next_op);
             this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
             break;
         case InstructionType::INST_RET:
             // no validation is needed, as the return address can only be set by the above case, if no address is set, this will restart the program
-            this->_next_op = return_addr - 1;
+            this->_next_op = _pop_return();
             break;
         case InstructionType::INST_JUMPIF:
             if (this->_stack.empty())
@@ -287,7 +303,7 @@ Value Interpreter::run_prog(std::stringstream& program){
 
 // resets the interpreter's state
 void Interpreter::reset_state(){
-    this->return_addr = 0;
+    this->_return_addrs.clear();
     this->_line_no = 0;
     this->_next_op = 0;
     this->_parser.reset();
