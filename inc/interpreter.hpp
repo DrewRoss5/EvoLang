@@ -30,6 +30,7 @@ class Interpreter{
         void stack_push(const Value& val);
         void stack_dup();
         size_t stack_size() {return this->_stack.size();}
+        bool stack_empty() {return this->_stack.empty();}
         const Value& stack_top();
         Value run_expr(std::string expr);
         Value run_prog(std::stringstream& program);

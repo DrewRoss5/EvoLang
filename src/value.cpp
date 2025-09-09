@@ -4,7 +4,7 @@
 #include <iostream>
 #include "../inc/value.hpp"
 
-bool Value::is_intergral(){
+bool Value::is_intergral() const{
     std::unordered_map<ValueType, short> lookup = {
         {ValueType::TYPE_INT, 0},
         {ValueType::TYPE_CHAR, 0},
@@ -14,7 +14,7 @@ bool Value::is_intergral(){
 }
 
 // converts any integral type variable to an integer, raises an error if this is not an integral type
-int Value::as_int(){
+int Value::as_int() const{
     if (!this->is_intergral())
         throw std::runtime_error("Cannot convert non-integral type to int");
     switch (this->_type){
@@ -36,7 +36,7 @@ Value Value::from_int(ValueType type, int val){
 }
 
 // returns a string representation of the value, used for printing
-std::string Value::to_string(){
+std::string Value::to_string() const{
     switch (this->_type){
         case ValueType::TYPE_INT:
             return std::to_string(std::get<int>(this->_val));
@@ -49,7 +49,7 @@ std::string Value::to_string(){
         case ValueType::TYPE_CHAR:
             return "" + std::get<char>(this->_val);
         case ValueType::TYPE_NULL:
-            return "NULL";
+            return "";
     }
     return "ERROR TYPE";
 }

@@ -164,6 +164,7 @@ void Parser::parse_label(const Token& token){
 
 // parses the instructions for a single expression in reverse ordeer
 std::vector<Instruction> Parser::parse_expr(){
+    this->_line_no++;
     Token token{TokenType::NULL_T, ""};
     while (!this->_tokens.empty()){
         token = this->_tokens.back();
@@ -192,7 +193,6 @@ std::vector<Instruction> Parser::parse_expr(){
 // parses a program, each token vector represents a single expression
 std::vector<Instruction> Parser::parse_program(std::vector<std::vector<Token>>& statements){
     for (std::vector<Token>& statement : statements){
-        _line_no++;
         this->_tokens = statement;
         this->parse_expr();
     }
@@ -231,5 +231,10 @@ void Parser::reset(const std::vector<Token>& tokens){
     this->_vars.clear();
     this->_word_stack.clear();
     this->_instructions.clear();
+    this->_tokens = tokens;
+}
+
+// sets the parser's tokens without otherwise changing the state
+void Parser::set_tokens(const std::vector<Token>& tokens){
     this->_tokens = tokens;
 }

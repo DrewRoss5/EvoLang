@@ -25,12 +25,12 @@ class Value{
         template <typename T>
         void set_value(const T& value);
         const std::variant<int, bool, char, std::string>& get_value() const {return this->_val;}
-        int as_int();
+        int as_int() const;
         static Value from_int(ValueType type, int val);
         ~Value(){};
         ValueType get_type() const {return this->_type;}
-        std::string to_string();
-        bool is_intergral();
+        std::string to_string() const;
+        bool is_intergral() const;
         bool operator==(const Value& rhs);
         bool operator!=(const Value& rhs);
 

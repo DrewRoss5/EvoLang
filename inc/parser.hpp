@@ -26,6 +26,7 @@ class Parser{
     public:
         Parser() {}
         Parser(const std::vector<Token>& tokens) : _tokens(tokens) {}
+        void set_tokens(const std::vector<Token>& tokens);
         void reset();
         void reset(const std::vector<Token>& tokens);
         std::vector<Instruction> parse_expr();

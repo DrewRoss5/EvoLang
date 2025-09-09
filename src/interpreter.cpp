@@ -264,12 +264,12 @@ void Interpreter::_run_bytecode(){
 Value Interpreter::run_expr(std::string expr){
     this->_next_op = 0;
     std::vector<Token> tokens = tokenize_expr(expr);
-    this->_parser.reset(tokens);
+    this->_parser.set_tokens(tokens);
     this->_instructions = this->_parser.parse_expr();
     this->_run_bytecode();
     if (this->_stack.empty())
         return Value(ValueType::TYPE_NULL, "");
-    return this->stack_pop();
+    return this->stack_top();
 }
 
 // runs a multiline program, treating each line as an expression. returns the top value remaining on the stack, or an empty value if the stack is empty
