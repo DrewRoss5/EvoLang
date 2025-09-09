@@ -130,7 +130,7 @@ void Interpreter::_jump_op(const Instruction& inst){
         case InstructionType::INST_JUMP:
         case InstructionType::INST_CALL:
             if (inst.op_code == InstructionType::INST_CALL)
-                this->return_addr = this->_next_op;
+                this->return_addr = this->_next_op + 1;
             this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
             break;
         case InstructionType::INST_RET:
