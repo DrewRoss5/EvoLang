@@ -1,9 +1,7 @@
 println "Hello, World!"
 pop
-add 111 222
-set x
-mul 2 x
-println
+set x add 111 222
+println mul 2 x
 pop
 # This should display
 # "Hello, World!"
