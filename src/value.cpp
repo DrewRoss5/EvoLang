@@ -63,3 +63,8 @@ bool Value::operator==(const Value& rhs){
 bool Value::operator!=(const Value& rhs){
     return !(*this == rhs);
 }
+
+// greater than comparison for values, do not call this unless you've ensured both types are integrals
+bool Value::operator>(const Value& rhs){
+    return this->as_int() > rhs.as_int();
+}

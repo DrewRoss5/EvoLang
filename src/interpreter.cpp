@@ -115,14 +115,43 @@ void Interpreter::_logic_op(const Instruction& inst){
         case InstructionType::INST_XOR:
             retval = lhs ^ rhs;
             break;
+    }  
+    this->stack_push(Value::from_int(left_val.get_type(), retval));
+}
+
+// runs a coparison operation
+void Interpreter::_comp_op(const Instruction& inst){
+    if (this->_stack.size() < 2)
+        throw std::runtime_error(std::format("Error on line {}: comparison operations require at least two values on the stack", this->_line_no));
+    Value right_val = this->stack_pop();
+    Value left_val = this->stack_pop();
+    int comparison_offset {15};
+    bool result;
+    switch (inst.op_code){
         case InstructionType::INST_NEQ:
         case InstructionType::INST_EQ:
             // this is some black magic
-            eqval = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 13);
-            this->stack_push(Value(ValueType::TYPE_BOOL, eqval));
+            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 13);
+            this->stack_push(Value(ValueType::TYPE_BOOL, result));
             return;
-    }  
-    this->stack_push(Value::from_int(left_val.get_type(), retval));
+        case InstructionType::INST_LESS:
+        case InstructionType::INST_GREATER:
+        case InstructionType::INST_LESS_EQ:
+        case InstructionType::INST_GREATER_EQ:
+            if (!left_val.is_intergral() || !right_val.is_intergral())
+                throw std::runtime_error(std::format("Error on line {}: comparison operations cannot be performed on non-integral types", this->_line_no));
+            // check if this is a "or equal operation"
+            if (inst.op_code > InstructionType::INST_GREATER){
+                if (left_val == right_val){
+                    this->stack_push(Value(ValueType::TYPE_BOOL, true));
+                    return;
+                }
+                comparison_offset += 2;  
+            }
+            // similar black magic to above
+            result = (left_val > right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - comparison_offset);
+            this->stack_push(Value(ValueType::TYPE_BOOL, result));
+    }
 }
 
 // runs a logical not operation 
@@ -248,9 +277,15 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_AND:
             case InstructionType::INST_OR:
             case InstructionType::INST_XOR:
+                this->_logic_op(inst);
+                break;
             case InstructionType::INST_EQ:
             case InstructionType::INST_NEQ:
-                this->_logic_op(inst);
+            case InstructionType::INST_LESS:
+            case InstructionType::INST_GREATER:
+            case InstructionType::INST_LESS_EQ:
+            case InstructionType::INST_GREATER_EQ:
+                this->_comp_op(inst);
                 break;
             case InstructionType::INST_NOT:
                 this->_not_op(inst);

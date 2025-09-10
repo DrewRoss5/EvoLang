@@ -33,6 +33,7 @@ class Value{
         bool is_intergral() const;
         bool operator==(const Value& rhs);
         bool operator!=(const Value& rhs);
+        bool operator>(const Value& rhs);
 
 };
 
