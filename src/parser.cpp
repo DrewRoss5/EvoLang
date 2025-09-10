@@ -169,6 +169,7 @@ void Parser::parse_label(const Token& token){
 
 // parses the instructions for a single expression in reverse ordeer
 std::vector<Instruction> Parser::parse_expr(){
+    this->_instructions.clear();
     this->_line_no++;
     Token token{TokenType::NULL_T, ""};
     while (!this->_tokens.empty()){
@@ -227,7 +228,6 @@ void Parser::reset(){
     this->_instructions.clear();
     this->_tokens.clear();
 }
-
 
 // resets the parser's state, and sets its tokens to the provided vector
 void Parser::reset(const std::vector<Token>& tokens){
