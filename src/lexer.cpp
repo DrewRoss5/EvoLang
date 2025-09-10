@@ -10,6 +10,7 @@ std::map<std::string, TokenType> token_map = {
     {"push", TokenType::INST_T},
     {"pop", TokenType::INST_T},
     {"dup", TokenType::INST_T},
+    {"size", TokenType::INST_T},
     {"add", TokenType::INST_T},
     {"sub", TokenType::INST_T},
     {"mul", TokenType::INST_T},
