@@ -1,351 +1,245 @@
-#include <iostream>
-#include <vector>
 #include <string>
-#include <sstream>
+#include <unordered_map>
+#include <algorithm>
 #include <stdexcept>
 #include <format>
+
+#include "../inc/token.hpp"
 #include "../inc/parser.hpp"
-#include "../inc/value.hpp"
-#include "../inc/lexer.hpp"
-#include "../inc/instruction.hpp"
-#include "../inc/interpreter.hpp"
 
+// associates each instruction keyword with it's op code
+const std::unordered_map<std::string, InstructionType> inst_map = {
+    {"push", InstructionType::INST_PUSH},
+    {"pop", InstructionType::INST_POP},
+    {"dup", InstructionType::INST_DUP},
+    {"size", InstructionType::INST_SIZE},
+    {"add", InstructionType::INST_ADD},
+    {"sub", InstructionType::INST_SUB},
+    {"mul", InstructionType::INST_MUL},
+    {"div", InstructionType::INST_DIV},
+    {"mod", InstructionType::INST_MOD},
+    {"and", InstructionType::INST_AND},
+    {"or", InstructionType::INST_OR},
+    {"xor", InstructionType::INST_XOR},
+    {"not", InstructionType::INST_NOT},
+    {"eq", InstructionType::INST_EQ},
+    {"neq", InstructionType::INST_NEQ},
+    {"lt", InstructionType::INST_LESS},
+    {"gt", InstructionType::INST_GREATER},
+    {"lte", InstructionType::INST_LESS_EQ},
+    {"gte", InstructionType::INST_GREATER_EQ},
+    {"j", InstructionType::INST_JUMP},
+    {"jif", InstructionType::INST_JUMPIF},
+    {"call", InstructionType::INST_CALL},
+    {"ret", InstructionType::INST_RET},
+    {"set", InstructionType::INST_SET},
+    {"get", InstructionType::INST_GET},
+    {"print", InstructionType::INST_PRINT},
+    {"println", InstructionType::INST_PRINTLN},
+    {"print_p", InstructionType::INST_PRINT},
+    {"println_p", InstructionType::INST_PRINTLN},
+    {"read", InstructionType::INST_READ},
+    {"readint", InstructionType::INST_READINT}
+};
 
-
-// STACK INSTRUCTIONS FOLLOW
-// pushes a value on to the top of stack
-void Interpreter::stack_push(const Value& val){
-    this->_stack.push_back(val);
-}
-
-// duplicates the top value of the stack
-void Interpreter::stack_dup(){
-    if (this->_stack.empty())
-        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
-    Value val = this->_stack.back();
-    this->_stack.push_back(val);
-}
-
-// CALL STACK FUNTIONS FOLLOW
-// pops the top address off the call stack, or returns 0 if empty
-size_t Interpreter::_pop_return(){
-    if (this->_return_addrs.empty())
-        return 0;
-    size_t ret_val = _return_addrs.back();
-    _return_addrs.pop_back();
-    return ret_val;
-}
-
-void Interpreter::_push_return(size_t addr){
-    this->_return_addrs.push_back(addr);
-}
-
-// returns a constant reference to the top value of the stack
-const Value& Interpreter::stack_top(){
-    if (this->_stack.empty())
-        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
-    return this->_stack.back();
-}
-
-// pops the top value off the stack and returns it
-Value Interpreter::stack_pop(){
-    if (this->_stack.empty())
-        throw std::runtime_error(std::format("Error on line {}: cannot retrieve a value from an empty stack.", this->_line_no));
-    Value val = this->_stack.back();
-    this->_stack.pop_back();
-    return val;
-}
-
-// PROGRAM INSTRUCTIONS FOLLOW
-// runs an arithmetic operation
-void Interpreter::_arith_op(const Instruction& inst){
-    // ensure there at least two values on the stack to pop
-    if (this->_stack.size() < 2)
-        throw std::runtime_error(std::format("Error on line {}: arithmetic operations require at least two values on the stack", this->_line_no));
-    Value right_val = this->stack_pop();
-    Value left_val = this->stack_pop();
-    // ensure values match and are of the right type
-    if (right_val.get_type() != left_val.get_type())
-        throw std::runtime_error(std::format("Error on line {}: arithmetic cannot be performed on mismatch types", this->_line_no));
-    if (right_val.get_type() != ValueType::TYPE_INT)
-        throw std::runtime_error(std::format("Error on line {}: invalid type for arithmetic operation", this->_line_no));
-    int rhs {std::get<int>(right_val.get_value())}, lhs {std::get<int>(left_val.get_value())}, retval;
-    switch (inst.op_code){
-    case InstructionType::INST_ADD:
-        retval = lhs + rhs;
-        break;
-    case InstructionType::INST_SUB:
-        retval = lhs - rhs;
-        break;
-    case InstructionType::INST_MUL:
-        retval = lhs * rhs;
-        break;
-    case InstructionType::INST_DIV:
-        retval = lhs / rhs;
-        break;
-    case InstructionType::INST_MOD:
-        retval = lhs % rhs;
-        break;
-    }
-    Value result = Value(ValueType::TYPE_INT, retval);
-    this->stack_push(result);
-}
-
-// runs a logical operation
-void Interpreter::_logic_op(const Instruction& inst){
-    // ensure there at least two values on the stack to pop
-    if (this->_stack.size() < 2)
-        throw std::runtime_error(std::format("Error on line {}: logical operations require at least two values on the stack", this->_line_no));
-    Value right_val = this->stack_pop();
-    Value left_val = this->stack_pop();
-    // ensure values match and are of an integral type
-    if (right_val.get_type() != left_val.get_type())
-        throw std::runtime_error(std::format("Error on line {}: logical operations cannot be performed on mismatch types", this->_line_no));
-    if (!right_val.is_intergral())
-        throw std::runtime_error(std::format("Error on line {}: invalid type for logical operation", this->_line_no));
-    int lhs {left_val.as_int()}, rhs {right_val.as_int()}, retval;
-    bool eqval;
-    switch (inst.op_code){
-        case InstructionType::INST_AND:
-            retval = lhs & rhs;
-            break;
-        case InstructionType::INST_OR:
-            retval = lhs | rhs;
-            break;
-        case InstructionType::INST_XOR:
-            retval = lhs ^ rhs;
-            break;
-    }  
-    this->stack_push(Value::from_int(left_val.get_type(), retval));
-}
-
-// runs a coparison operation
-void Interpreter::_comp_op(const Instruction& inst){
-    if (this->_stack.size() < 2)
-        throw std::runtime_error(std::format("Error on line {}: comparison operations require at least two values on the stack", this->_line_no));
-    Value right_val = this->stack_pop();
-    Value left_val = this->stack_pop();
-    int comparison_offset {16};
-    bool result;
-    switch (inst.op_code){
-        case InstructionType::INST_NEQ:
-        case InstructionType::INST_EQ:
-            // this is some black magic
-            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 14);
-            this->stack_push(Value(ValueType::TYPE_BOOL, result));
-            return;
-        case InstructionType::INST_LESS:
-        case InstructionType::INST_GREATER:
-        case InstructionType::INST_LESS_EQ:
-        case InstructionType::INST_GREATER_EQ:
-            if (!left_val.is_intergral() || !right_val.is_intergral())
-                throw std::runtime_error(std::format("Error on line {}: comparison operations cannot be performed on non-integral types", this->_line_no));
-            // check if this is a "or equal operation"
-            if (inst.op_code > InstructionType::INST_GREATER){
-                if (left_val == right_val){
-                    this->stack_push(Value(ValueType::TYPE_BOOL, true));
-                    return;
-                }
-                comparison_offset += 2;  
-            }
-            // similar black magic to above
-            result = (left_val > right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - comparison_offset);
-            this->stack_push(Value(ValueType::TYPE_BOOL, result));
-            break;
-    }
-}
-
-// runs a logical not operation 
-void Interpreter::_not_op(const Instruction& inst){
-    // ensure there is at least one item on the stack
-    if (this->_stack.size() < 1)
-        throw std::runtime_error(std::format("Error on line {}: No stack data for not operation", this->_line_no));
-    Value val = this->stack_pop();
-    if (!val.is_intergral())
-        throw std::runtime_error(std::format("Error on line {}: invalid type for NOT operation", this->_line_no));
-    int data = val.as_int();
-    bool result = (data != 0);
-    this->stack_push(Value(ValueType::TYPE_BOOL, result));
-}
-
-// runs a jump operation
-void Interpreter::_jump_op(const Instruction& inst){
-    Value condition_val;
-    int addr;
-    switch (inst.op_code){
-        case InstructionType::INST_JUMP:
-        case InstructionType::INST_CALL:
-            if (inst.op_code == InstructionType::INST_CALL)
-                this->_push_return(this->_next_op);
-            this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
-            break;
-        case InstructionType::INST_RET:
-            // no validation is needed, as the return address can only be set by the above case, if no address is set, this will restart the program
-            this->_next_op = _pop_return();
-            break;
-        case InstructionType::INST_JUMPIF:
-            if (this->_stack.empty())
-                throw std::runtime_error(std::format("Error on line {}: no value to evaluate for jif instruction", this->_line_no));
-            condition_val = this->stack_pop();
-            if (condition_val.as_int())
-                this->_next_op = std::get<int>(inst.arg.value().get_value()) - 1;
-            break;
-    }
-}
-
-void Interpreter::_var_op(const Instruction& inst){
+// parses a literal expression, evaluates the value and creates a push instruction for it 
+void Parser::parse_literal(const Token& token){
     Value val;
-    std::string var_name;
-    switch (inst.op_code){
-        case InstructionType::INST_SET:
-            if (this->_stack.empty())
-                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to assign variable", this->_line_no));
-            val = this->stack_pop();
-            this->_vars[std::get<std::string>(inst.arg.value().get_value())] = val;
+    bool bool_val;
+    int int_val;
+    switch (token.type){
+        case TokenType::BOOL_T:
+            bool_val = (token.text == "TRUE");
+            val = Value(ValueType::TYPE_BOOL, bool_val);
+            break;
+        case TokenType::INT_T:
+            int_val = std::stoi(token.text);
+            val = Value(ValueType::TYPE_INT, int_val);
+            break;
+        case TokenType::CHAR_T:
+            val = Value(ValueType::TYPE_CHAR, token.text[0]);
+            break;
+        case TokenType::STR_T:
+            val = Value(ValueType::TYPE_STR, token.text);
+            break;
+    }
+    this->_instructions.emplace_back(InstructionType::INST_PUSH, val);
+    this->_inst_no++;
+}
+
+// parses a non-keyword name, checking the next token to determine how to handle it
+void Parser::parse_word(const Token& token){
+    // the next instruction is "set" and needs only the variable name
+    if (!this->_tokens.empty() && this->_tokens.back().text == "set"){
+        this->_word_stack.push_back(token.text);
+    }
+    // the next instruction is get and we need to determine if the variable is known to exist
+    else if (!this->_tokens.empty() && this->_tokens.back().text == "get"){
+        // ensure the variable has been declared
+        if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
+            throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
+        this->_word_stack.push_back(token.text);
+    }
+    // the next token is unknown, and we assume this is an implicit get if its a variable, otherwise, we assume that it's a label
+    else{
+        // parse the word as a variable if declared
+        if (std::find(this->_vars.begin(), this->_vars.end(), token.text) != this->_vars.end()){
+            Value name_val(ValueType::TYPE_NAME, token.text);
+            this->_instructions.emplace_back(InstructionType::INST_GET, name_val);
+            this->_inst_no++;
+        }
+        // parse the word as a label (simply push it to the word stack)
+        this->_word_stack.push_back(token.text);
+    }
+}
+
+// parses a named instruction
+void Parser::parse_inst(const Token& token){
+    InstructionType op_code = inst_map.at(token.text);
+    Value arg_val;
+    std::string var_name, label_name;
+    switch (op_code){
+        case InstructionType::INST_PUSH:
+            // at the moment, the explicit PUSH command is only sugar, so we can ignore it, as values are already implicitly pushed
             break;
         case InstructionType::INST_GET:
-            var_name = std::get<std::string>(inst.arg.value().get_value());
-            if (!this->_vars.count(var_name))
-                throw std::runtime_error(std::format("Error on line {}: Variable \"{}\" is undeclared", this->_line_no, var_name));
-            val = this->_vars.at(var_name);
-            this->stack_push(val);
+            // ensure there is a variable found
+            if (_word_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: expected an identifier" , this->_line_no));
+            var_name = this->_word_stack.back();
+            this->_word_stack.pop_back(); 
+            // ensure the variable has been decleared
+            if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
+                throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
+            arg_val = Value(ValueType::TYPE_NAME, var_name);
+            this->_instructions.emplace_back(op_code, arg_val);
+            this->_inst_no++;
             break;
-    }
-}
-
-void Interpreter::_io_op(const Instruction& inst){
-    Value val;
-    std::string str_in;
-    int num_in;
-    switch (inst.op_code){
+        case InstructionType::INST_SET:
+            if (_word_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: expected an identifier" , this->_line_no));
+            var_name = this->_word_stack.back();
+            this->_word_stack.pop_back(); 
+            arg_val = Value(ValueType::TYPE_NAME, var_name);
+            this->_instructions.emplace_back(InstructionType::INST_SET, arg_val);
+            this->_inst_no++;
+            // add the variable name to the list of declared variables if not already decleared
+            if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
+                this->_vars.push_back(var_name);
+            break;
+        case InstructionType::INST_JUMP:
+        case InstructionType::INST_CALL:
+        case InstructionType::INST_JUMPIF:
+            if (this->_word_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: Jump statement must have label", this->_line_no));
+            label_name = this->_word_stack.back();
+            this->_word_stack.pop_back();
+            // check if the label is already defined, and assign the direct instruction number if so
+            if (this->_labels.count(token.text))
+                arg_val = Value(ValueType::TYPE_INT, this->_labels[label_name]);
+            else
+                arg_val = Value(ValueType::TYPE_STR, label_name);
+            this->_instructions.emplace_back(op_code, arg_val);
+            this->_inst_no++;
+            break;
         case InstructionType::INST_PRINT:
-            if (this->_stack.empty())
-                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to print", this->_line_no));
-            val = this->stack_top();
-            std::cout << val.to_string();
-            break;
         case InstructionType::INST_PRINTLN:
-            if (this->_stack.empty())
-                throw std::runtime_error(std::format("Error on line {}: Not enough stack data to print", this->_line_no));
-            val = this->stack_top();
-            std::cout << val.to_string() << std::endl;
-            break;
-        case InstructionType::INST_READ:
-            std::getline(std::cin, str_in);
-            this->stack_push(Value(ValueType::TYPE_STR, str_in));
-            break;
-        case InstructionType::INST_READINT:
-            std::getline(std::cin, str_in);
-            try{
-                num_in = std::stoi(str_in);
-                this->stack_push(Value(ValueType::TYPE_INT, num_in));
-            }
-            catch (const std::invalid_argument & e) {
-                throw std::runtime_error(std::format("Error on line {}: Non-integer input recived for readint", this->_line_no));
-            }
-            catch (const std::out_of_range & e) {
-                throw std::runtime_error(std::format("Error on line {}: Out-of-range input recived for readint", this->_line_no));
+            this->_instructions.emplace_back(op_code);
+            this->_inst_no++;
+            // check if this is a print and pop command
+            if (token.text.ends_with("_p")){
+                this->_instructions.emplace_back(InstructionType::INST_POP);
+                this->_inst_no++;
             }
             break;
+        default:
+            // the instruction is a "simple" instruction which takes no argument
+            this->_instructions.emplace_back(op_code);
+            this->_inst_no++;
+            break;
+
     }
 }
 
-// INTERPRETER FUNCTIONS FOLLOW
-// runs a list of instrunctions produced by the parser
-void Interpreter::_run_bytecode(){
-    Instruction inst;
-    while (this->_next_op < this->_instructions.size()){
-        inst = this->_instructions[this->_next_op];
-        switch (inst.op_code){
-            case InstructionType::INST_POP:
-                this->stack_pop();
+void Parser::parse_label(const Token& token){
+    if (this->_labels.count(token.text))
+        throw std::runtime_error(std::format("Error on line {}: redeclaration of label \"{}\"" , this->_line_no, token.text));
+    this->_labels[token.text] = this->_inst_no - 1;
+}
+
+// parses the instructions for a single expression in reverse ordeer
+std::vector<Instruction> Parser::parse_expr(){
+    this->_instructions.clear();
+    this->_line_no++;
+    Token token{TokenType::NULL_T, ""};
+    while (!this->_tokens.empty()){
+        token = this->_tokens.back();
+        this->_tokens.pop_back();
+        switch (token.type){
+            case TokenType::BOOL_T:
+            case TokenType::INT_T:
+            case TokenType::CHAR_T:
+            case TokenType::STR_T:
+                this->parse_literal(token);
                 break;
-            case InstructionType::INST_DUP:
-                this->stack_dup();
+            case TokenType::WORD_T:
+                this->parse_word(token);
                 break;
-            case InstructionType::INST_PUSH:
-                if (!inst.arg.has_value())
-                    throw std::runtime_error(std::format("Error on line {}: illegal instruction", this->_line_no));
-                this->stack_push(inst.arg.value());
+            case TokenType::INST_T:
+                this->parse_inst(token);
                 break;
-            case InstructionType::INST_SIZE:
-                this->stack_push(Value(ValueType::TYPE_INT, static_cast<int>(this->_stack.size())));
-                break;
-            case InstructionType::INST_ADD:
-            case InstructionType::INST_SUB:
-            case InstructionType::INST_MUL:
-            case InstructionType::INST_DIV:
-            case InstructionType::INST_MOD:
-                this->_arith_op(inst);
-                break;
-            case InstructionType::INST_AND:
-            case InstructionType::INST_OR:
-            case InstructionType::INST_XOR:
-                this->_logic_op(inst);
-                break;
-            case InstructionType::INST_EQ:
-            case InstructionType::INST_NEQ:
-            case InstructionType::INST_LESS:
-            case InstructionType::INST_GREATER:
-            case InstructionType::INST_LESS_EQ:
-            case InstructionType::INST_GREATER_EQ:
-                this->_comp_op(inst);
-                break;
-            case InstructionType::INST_NOT:
-                this->_not_op(inst);
-                break;
-            case InstructionType::INST_JUMP:
-            case InstructionType::INST_JUMPIF:
-            case InstructionType::INST_CALL:
-            case InstructionType::INST_RET:
-                this->_jump_op(inst);
-                break;
-            case InstructionType::INST_GET:
-            case InstructionType::INST_SET:
-                this->_var_op(inst);
-                break;
-            case InstructionType::INST_PRINT:
-            case InstructionType::INST_PRINTLN:
-            case InstructionType::INST_READ:
-            case InstructionType::INST_READINT:
-                this->_io_op(inst);
+            case TokenType::LABEL_T:
+                this->parse_label(token);
                 break;
         }
-        this->_next_op++;
     }
+    return this->_instructions;
 }
 
-// runs a single expression, and returns the top value remaining on the stack, or an empty value if the stack is empty
-Value Interpreter::run_expr(std::string expr){
-    this->_next_op = 0;
-    std::vector<Token> tokens = tokenize_expr(expr);
-    this->_parser.set_tokens(tokens);
-    this->_instructions = this->_parser.parse_expr();
-    this->_run_bytecode();
-    if (this->_stack.empty())
-        return Value(ValueType::TYPE_NULL, "");
-    return this->stack_top();
+// parses a program, each token vector represents a single expression
+std::vector<Instruction> Parser::parse_program(std::vector<std::vector<Token>>& statements){
+    for (std::vector<Token>& statement : statements){
+        this->_tokens = statement;
+        this->parse_expr();
+    }
+    // read through all instructions to find if there are any jumps with unresolved labels, and resolve them if so
+    // TODO: Find a more efficient way to do this
+    Value label_no;
+    std::string label_str;
+    for (int i = 0; i < this->_instructions.size(); i++){
+        if (this->_instructions[i].op_code == InstructionType::INST_JUMP || this->_instructions[i].op_code == InstructionType::INST_CALL || this->_instructions[i].op_code == InstructionType::INST_JUMPIF)
+            if (this->_instructions[i].arg.value().get_type() == ValueType::TYPE_STR){
+                label_str = std::get<std::string>(this->_instructions[i].arg.value().get_value());
+                if (!this->_labels.count(label_str))
+                    throw std::runtime_error(std::format("Error: use of undeclared label"));
+                label_no = Value(ValueType::TYPE_INT, this->_labels[label_str]);
+                this->_instructions[i].set_arg(label_no);
+            }
+    }
+    return this->_instructions;
 }
 
-// runs a multiline program, treating each line as an expression. returns the top value remaining on the stack, or an empty value if the stack is empty
-// TODO: Make this keep track of line number
-Value Interpreter::run_prog(std::stringstream& program){
-    this->_next_op = 0;
-    std::vector<std::vector<Token>> tokens = tokenize_program(program);
-    this->_parser.reset();
-    this->_instructions = this->_parser.parse_program(tokens);
-    this->_run_bytecode();
-    if (this->_stack.empty())
-        return Value(ValueType::TYPE_NULL, "");
-    return this->stack_pop();
-}
-
-// resets the interpreter's state
-void Interpreter::reset_state(){
-    this->_return_addrs.clear();
+// resets the parser's state entirely
+void Parser::reset(){
     this->_line_no = 0;
-    this->_next_op = 0;
-    this->_parser.reset();
-    this->_instructions.clear();
+    this->_inst_no = 0;
     this->_vars.clear();
+    this->_word_stack.clear();
+    this->_instructions.clear();
+    this->_tokens.clear();
+}
+
+// resets the parser's state, and sets its tokens to the provided vector
+void Parser::reset(const std::vector<Token>& tokens){
+    this->_line_no = 0;
+    this->_inst_no = 0;
+    this->_vars.clear();
+    this->_word_stack.clear();
+    this->_instructions.clear();
+    this->_tokens = tokens;
+}
+
+// sets the parser's tokens without otherwise changing the state
+void Parser::set_tokens(const std::vector<Token>& tokens){
+    this->_tokens = tokens;
 }
