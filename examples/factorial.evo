@@ -1,0 +1,15 @@
+j main
+
+factorial: dup
+    jif break eq 1
+    dup
+    sub 1
+    call factorial
+    mul
+    break: ret
+
+main: push "Find factorial of:"
+    print_p
+    readint
+    call factorial
+    println_p
