@@ -29,7 +29,7 @@ class Parser{
         void set_tokens(const std::vector<Token>& tokens);
         void reset();
         void reset(const std::vector<Token>& tokens);
-        std::vector<Instruction> parse_expr();
+        std::vector<Instruction> parse_expr(bool clear = false);
         std::vector<Instruction> parse_program(std::vector<std::vector<Token>>& tokens);
 };
 

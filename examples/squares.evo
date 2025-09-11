@@ -4,8 +4,9 @@ set ctr 0
 loop: push ctr
     print_p 
     print_p " -> "
-    mul dup ctr                 # calculate the square of ctr
+    * dup ctr                   # calculate the square of ctr
     println                     # print the square
-    pop                         # pop the square from the stack
-    set ctr add 1 ctr
+    + 1 ctr             # push ctr +1 to the stack
+    set ctr 
+              
 jif loop neq ctr 101

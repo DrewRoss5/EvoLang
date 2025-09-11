@@ -10,29 +10,46 @@
 // associates each instruction keyword with it's op code
 const std::unordered_map<std::string, InstructionType> inst_map = {
     {"push", InstructionType::INST_PUSH},
+    {"->", InstructionType::INST_PUSH},
     {"pop", InstructionType::INST_POP},
     {"dup", InstructionType::INST_DUP},
     {"size", InstructionType::INST_SIZE},
     {"add", InstructionType::INST_ADD},
+    {"+", InstructionType::INST_ADD},
     {"sub", InstructionType::INST_SUB},
+    {"-", InstructionType::INST_SUB},
     {"mul", InstructionType::INST_MUL},
+    {"*", InstructionType::INST_MUL},
     {"div", InstructionType::INST_DIV},
+    {"/", InstructionType::INST_DIV},
     {"mod", InstructionType::INST_MOD},
+    {"%", InstructionType::INST_MOD},
     {"and", InstructionType::INST_AND},
+    {"&", InstructionType::INST_AND},
     {"or", InstructionType::INST_OR},
+    {"|", InstructionType::INST_OR},
     {"xor", InstructionType::INST_XOR},
+    {"^", InstructionType::INST_XOR},
     {"not", InstructionType::INST_NOT},
+    {"!", InstructionType::INST_NOT},
     {"eq", InstructionType::INST_EQ},
+    {"==", InstructionType::INST_EQ},
     {"neq", InstructionType::INST_NEQ},
+    {"!=", InstructionType::INST_NEQ},
     {"lt", InstructionType::INST_LESS},
+    {"<", InstructionType::INST_LESS},
     {"gt", InstructionType::INST_GREATER},
+    {">", InstructionType::INST_GREATER},
     {"lte", InstructionType::INST_LESS_EQ},
+    {"<=", InstructionType::INST_LESS_EQ},
     {"gte", InstructionType::INST_GREATER_EQ},
+    {">=", InstructionType::INST_GREATER_EQ},
     {"j", InstructionType::INST_JUMP},
     {"jif", InstructionType::INST_JUMPIF},
     {"call", InstructionType::INST_CALL},
     {"ret", InstructionType::INST_RET},
     {"set", InstructionType::INST_SET},
+    {"<-", InstructionType::INST_SET},
     {"get", InstructionType::INST_GET},
     {"print", InstructionType::INST_PRINT},
     {"println", InstructionType::INST_PRINTLN},
@@ -168,8 +185,9 @@ void Parser::parse_label(const Token& token){
 }
 
 // parses the instructions for a single expression in reverse ordeer
-std::vector<Instruction> Parser::parse_expr(){
-    this->_instructions.clear();
+std::vector<Instruction> Parser::parse_expr(bool clear){
+    if (clear)
+        this->_instructions.clear();
     this->_line_no++;
     Token token{TokenType::NULL_T, ""};
     while (!this->_tokens.empty()){

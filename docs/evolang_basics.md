@@ -31,6 +31,10 @@ push "Hello, World!"
 push TRUE
 push 'f'
 ```
+The push command can also be used with the "->" alias, as seen below
+```
+-> 123
+```
 While the push command can be explicitly written to clarify intent idiomatically, it is not necessary, as all literals encountered are implicitly pushed, so the above code is equivalent to:
 ```
 'f' TRUE "Hello, World!", 'f'
@@ -64,6 +68,21 @@ add dup
 ```
 Will result in a value of 4 on top of the stack, as the value `2` is duplicated, so the `add` instruction evaluates `2 + 2`, despite `2` having only been explicitly pushed to the stack once. With the exception of `print` and `println`, all instructions that require inputs pop from the stack, so if you need a particular value for multiple operations, it's important to either duplicate the value, or store it to a variable (more detail on variables can be found further in this guide.)
 
+### Size:
+The size command pushes the current number of items on the stack to the top of stack. This count does not include the result of the size operation itself, so for instance if you have a stack containing
+```
+["hi", TRUE, 5]
+```
+And run
+```
+push size
+```
+The resulting stack will be 
+```
+["hi", TRUE, 5, 3]
+```
+
+
 ## Basic Commands
 ### Arithmetic Instructions:
 Evo has support for addition, subtraction, multiplication, division, and modulo operations (`add`, `sub`, `mul`, `div` and `mod` respectively.) All of these pop the top two values off the stack, and push the corresponding result. As of Evo version 0.1 Only integer-type values can be used for these operations, and as such only integer division is supported, though this is likely to be changed in future versions, with support for floating point values. The first popped value is treated as the right-hand side of the expression, and the second value is treated as the left-hand size. So,
@@ -79,7 +98,8 @@ push 5
 push 10
 sub
 ```
-Will result in a stack with a top of value of `-5`
+Will result in a stack with a top of value of `-5`<br>
+`add`, `sub`, `mul`, `div` and `mod` can also be accessed with the `+`, `-`, `*`, `/`, and `%` aliases respectively.
 
 ### Logical Instructions:
 Evo has support for the `and`, `or`, `xor`, and `not` logical operations. These operations can be done on any integral type (ints, bools, and chars), however, performing one of these operations of two values of differing types will result in an error. `and`, `or`, `xor` all function similarly to arithmetic instructions, popping the top two values for inputs, and pushing the result. The result will be of the same type as the operands, for example:
@@ -100,6 +120,7 @@ and
 not 0
 ```
 Will both result in a stack with a top value of `TRUE`
+`and`, `or`, `xor`, `not`, can be accessed using the `&`, `|`, `^`, `!`, aliases respectively.
 
 ### Comparison Operations
 Comparisons can be performed with the `eq` and `neq` operations (equal and not equal respectively). As with the previous types of operation, these pop the top two values off of the stack for inputs, compare them, and push either `TRUE` or `FALSE` to the stack. Comparing two values of different types is possible, but will always evaluate to false. For example
@@ -110,7 +131,11 @@ or
 ```
 neq 'a' "a"
 ```
-Will result in a stack with a top value of `TRUE`.
+Will result in a stack with a top value of `TRUE`.<br>
+`eq` and `neq` can be accessed with the `==` and `!=` aliases respectively.<br>
+In addition, greater than or less than operations can be used to compare any two integral. The are accessed with `gt` and `lt` respectively, or `gte` and `lte` for "greater than or equal" and "less than or equal" operations. 
+`gt`, `lt`, `gte`, `lte` can be accessed with the `>`, `<`, `>=`, `<=` aliases respectively.
+
 
 ## I/O Operations
 As of Evo v0.1, there is only user I/O, however file I/O will be implemented in future versions.
