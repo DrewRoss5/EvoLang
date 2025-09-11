@@ -1,12 +1,14 @@
 # this program displays the square of every number up to 100
-set ctr 0
+push 0
+<- ctr 
 
-loop: push ctr
-    print_p 
+loop: push ctr                  
+    print                       # print the value of ctr
     print_p " -> "
-    * dup ctr                   # calculate the square of ctr
-    println                     # print the square
-    + 1 ctr             # push ctr +1 to the stack
+    * dup                       # calculate the square of ctr
+    println_p                   # print the square
+    + 1 ctr                     # push ctr +1 to the stack
     set ctr 
-              
-jif loop neq ctr 101
+
+push ctr 101                # jump to loop, if counter is not equal to 101
+j!= loop                         

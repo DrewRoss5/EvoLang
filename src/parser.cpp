@@ -46,6 +46,12 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {">=", InstructionType::INST_GREATER_EQ},
     {"j", InstructionType::INST_JUMP},
     {"jif", InstructionType::INST_JUMPIF},
+    {"j==", InstructionType::INST_JUMPIF},
+    {"j!=", InstructionType::INST_JUMPIF},
+    {"j<", InstructionType::INST_JUMPIF},
+    {"j>", InstructionType::INST_JUMPIF},
+    {"j<=", InstructionType::INST_JUMPIF},
+    {"j>=", InstructionType::INST_JUMPIF},
     {"call", InstructionType::INST_CALL},
     {"ret", InstructionType::INST_RET},
     {"set", InstructionType::INST_SET},
@@ -114,7 +120,7 @@ void Parser::parse_word(const Token& token){
 void Parser::parse_inst(const Token& token){
     InstructionType op_code = inst_map.at(token.text);
     Value arg_val;
-    std::string var_name, label_name;
+    std::string var_name, label_name, condtion;
     switch (op_code){
         case InstructionType::INST_PUSH:
             // at the moment, the explicit PUSH command is only sugar, so we can ignore it, as values are already implicitly pushed
@@ -145,8 +151,8 @@ void Parser::parse_inst(const Token& token){
                 this->_vars.push_back(var_name);
             break;
         case InstructionType::INST_JUMP:
-        case InstructionType::INST_CALL:
         case InstructionType::INST_JUMPIF:
+        case InstructionType::INST_CALL:
             if (this->_word_stack.empty())
                 throw std::runtime_error(std::format("Error on line {}: Jump statement must have label", this->_line_no));
             label_name = this->_word_stack.back();
@@ -156,6 +162,12 @@ void Parser::parse_inst(const Token& token){
                 arg_val = Value(ValueType::TYPE_INT, this->_labels[label_name]);
             else
                 arg_val = Value(ValueType::TYPE_STR, label_name);
+            // if this is a JIF instruction, check if it's a compound operation
+
+            if (op_code == InstructionType::INST_JUMPIF && token.text != "jif"){
+                condtion = token.text.substr(1);
+                this->_instructions.emplace_back(inst_map.at(condtion));
+            }
             this->_instructions.emplace_back(op_code, arg_val);
             this->_inst_no++;
             break;
