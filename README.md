@@ -11,6 +11,7 @@ Evo is still early in development, with many features planned for future version
 - Functions/Loops
 - Variables
 ##  🚀 Planned Features:
+- Type Conversions
 - In-line conditionals
 - Floating point support
 - Arrays
