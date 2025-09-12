@@ -47,19 +47,48 @@ std::string Value::to_string() const{
         case ValueType::TYPE_BOOL:
             return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
         case ValueType::TYPE_CHAR:
-            return "" + std::get<char>(this->_val);
+            return std::string(1, std::get<char>(this->_val));
         case ValueType::TYPE_NULL:
             return "";
     }
     return "ERROR TYPE";
 }
 
+// returns the value at a given index, raises an error if this is not a collection type, or if the index is out of range
+Value Value::get_index(size_t index) const{
+    if (!this->is_collection())
+        throw std::runtime_error("Cannot get an index of a non-collection type.");
+    // when arrays are implemented, this will be changed to a switch case, but for now, this function always runs for string values
+    std::string str = std::get<std::string>(this->_val);
+    if (index >= str.size())
+        throw std::out_of_range("Index out of range");
+    return Value(ValueType::TYPE_CHAR, str.at(index));
+}
+
+// returns the length of this value if it's a collection type, otherwise raises an error
+size_t Value::get_len() const{
+    if (!this->is_collection())
+        throw std::runtime_error("Cannot get the length of a non-collection type.");
+    std::string str = std::get<std::string>(this->_val);
+    return str.length();
+}
+
+/* 
+    returns true if this value is a collection type, at the moment, this only returns true if
+    the Value is a string, however, this is it's own function to account for future array support
+*/
+bool Value::is_collection() const{
+    return this->_type == ValueType::TYPE_STR;
+}
+
+// returns if two values are equal in both type and value
 bool Value::operator==(const Value& rhs){
     if (this->_type != rhs._type)
         return false;
     return this->_val == rhs._val;
 }
 
+// returns if two values are inequal in type and/or value
 bool Value::operator!=(const Value& rhs){
     return !(*this == rhs);
 }

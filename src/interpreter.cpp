@@ -193,6 +193,7 @@ void Interpreter::_jump_op(const Instruction& inst){
     }
 }
 
+// runs set and get operations
 void Interpreter::_var_op(const Instruction& inst){
     Value val;
     std::string var_name;
@@ -213,6 +214,7 @@ void Interpreter::_var_op(const Instruction& inst){
     }
 }
 
+// runs an I/O operations
 void Interpreter::_io_op(const Instruction& inst){
     Value val;
     std::string str_in;
@@ -245,6 +247,46 @@ void Interpreter::_io_op(const Instruction& inst){
             }
             catch (const std::out_of_range & e) {
                 throw std::runtime_error(std::format("Error on line {}: Out-of-range input recived for readint", this->_line_no));
+            }
+            break;
+    }
+}
+
+// runs an array/collection operation
+void Interpreter::_arr_op(const Instruction& inst){
+    Value collection, index, result;
+    int length;
+    switch (inst.op_code){
+        case InstructionType::INST_AT:
+            if (this->_stack.size() < 2)
+                throw std::runtime_error(std::format("Error on line {}: The \"at\" instruction expects at least two values on the stack.", this->_line_no));
+            collection = this->stack_pop();
+            index = this->stack_pop();
+            
+            if (index.get_type() != ValueType::TYPE_INT)
+                throw std::runtime_error(std::format("Error on line {}: Index values must be of integer type", this->_line_no));
+            try{
+                result = collection.get_index(index.as_int());
+                this->stack_push(result);
+            }
+            catch (std::out_of_range e){
+                throw std::runtime_error(std::format("Range Error on line {}: Index out of range.", this->_line_no));
+            }
+            catch (std::runtime_error e){
+                throw std::runtime_error(std::format("Error on line {}: {}", this->_line_no, e.what()));
+            }
+            break;
+        case InstructionType::INST_LEN:
+            if (this->_stack.size() < 1)
+                throw std::runtime_error(std::format("Error on line {}: The \"len\" instruction expects at least one value on the stack.", this->_line_no));
+            collection = this->stack_pop();
+            try{
+                length = collection.get_len();
+                result = Value(ValueType::TYPE_INT, length);
+                this->stack_push(result);
+            }
+            catch (std::runtime_error e){
+                throw std::runtime_error(std::format("Error on line {}: {}", this->_line_no, e.what()));
             }
             break;
     }
@@ -309,6 +351,10 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_READ:
             case InstructionType::INST_READINT:
                 this->_io_op(inst);
+                break;
+            case InstructionType::INST_AT:
+            case InstructionType::INST_LEN:
+                this->_arr_op(inst);
                 break;
         }
         this->_next_op++;

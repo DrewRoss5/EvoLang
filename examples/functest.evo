@@ -1,8 +1,8 @@
 j main
 
 # squares the top value of the stack
-square: dup
-    mul
+square: dup 
+    *
     ret
 
 # cubes the top value of the stack

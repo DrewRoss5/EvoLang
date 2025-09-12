@@ -1,0 +1,17 @@
+# This program reads a string from the user, and then prints it in reverse
+# This shows an example of string manipulation in evo
+
+print_p "String to reverse: "
+set str read                     # set str to user input
+print_p "Reversed:"
+len str                          # push the length of the string to stack
+
+loop: -> 1                       # Subtract one from the current index
+    sub                        
+    dup                          # duplicate for the index     
+    at str                       # get the character at the current index
+    print_p
+    dup                          # duplicate for the comparison
+    j!= 0 loop
+
+println_p ""                     # print a newline

@@ -62,7 +62,9 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"print_p", InstructionType::INST_PRINT},
     {"println_p", InstructionType::INST_PRINTLN},
     {"read", InstructionType::INST_READ},
-    {"readint", InstructionType::INST_READINT}
+    {"readint", InstructionType::INST_READINT},
+    {"at", InstructionType::INST_AT},
+    {"len", InstructionType::INST_LEN},
 };
 
 // parses a literal expression, evaluates the value and creates a push instruction for it 

@@ -34,7 +34,9 @@ enum class InstructionType{
     INST_PRINT,
     INST_PRINTLN,
     INST_READ,
-    INST_READINT
+    INST_READINT,
+    INST_AT,
+    INST_LEN,
 };
 
 struct Instruction{

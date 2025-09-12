@@ -14,8 +14,7 @@ Evo is still early in development, with many features planned for future version
 - Type Conversions
 - In-line conditionals
 - Floating point support
-- Arrays
-- Improved string manipulation
+- Arrays (In Progress)
 - File I/O support
 - Support for custom extensions
   

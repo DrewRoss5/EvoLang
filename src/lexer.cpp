@@ -61,8 +61,10 @@ std::map<std::string, TokenType> token_map = {
     {"println_p", TokenType::INST_T},
     {"read", TokenType::INST_T},
     {"readint", TokenType::INST_T},
+    {"at", TokenType::INST_T},
+    {"len", TokenType::INST_T},
     {"TRUE", TokenType::BOOL_T},
-    {"FALSE", TokenType::BOOL_T}
+    {"FALSE", TokenType::BOOL_T},
 };
 
 // splits a string by a given delimter character (default space)

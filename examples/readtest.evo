@@ -1,10 +1,11 @@
 # this program was made to test the read instructions, it reads in a string and a number (n), and prints the string n times
 print_p "String to print: " 
-set str read
+read
+<- str 
 print_p "Times to print: "
 readint 
-loop: push str
+loop: -> str
     println_p 
     dup sub 1
-    jif loop neq 0
+    j!= 0 loop 
  

@@ -30,7 +30,10 @@ class Value{
         ~Value(){};
         ValueType get_type() const {return this->_type;}
         std::string to_string() const;
+        Value get_index(size_t index) const;
+        size_t get_len() const;
         bool is_intergral() const;
+        bool is_collection() const;
         bool operator==(const Value& rhs);
         bool operator!=(const Value& rhs);
         bool operator>(const Value& rhs);
