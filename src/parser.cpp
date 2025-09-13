@@ -95,11 +95,11 @@ void Parser::parse_literal(const Token& token){
 // parses a non-keyword name, checking the next token to determine how to handle it
 void Parser::parse_word(const Token& token){
     // the next instruction is "set" and needs only the variable name
-    if (!this->_tokens.empty() && this->_tokens.back().text == "set"){
+    if (!this->_tokens.empty() && this->_tokens.back().text == "set" || this->_tokens.back().text == "<-"){
         this->_word_stack.push_back(token.text);
     }
     // the next instruction is get and we need to determine if the variable is known to exist
-    else if (!this->_tokens.empty() && this->_tokens.back().text == "get"){
+    else if (!this->_tokens.empty() && this->_tokens.back().text == "get"  || this->_tokens.back().text == "->"){
         // ensure the variable has been declared
         if (std::find(this->_vars.begin(), this->_vars.end(), token.text) == this->_vars.end())
             throw std::runtime_error(std::format("Error on line {}: use of undeclared varaible \"{}\"" , this->_line_no, token.text));
