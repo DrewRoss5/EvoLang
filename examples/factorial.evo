@@ -1,26 +1,17 @@
 j main
 
-factorial: dup
-    -> 1
-    jif break
+factorial: 
+    dup
+    jif break eq 1
     dup
     sub 1
     call factorial
     mul
-    break: ret
+    break: 
+        ret
 
-main: push "Find factorial of: "
-    print_p
+main:
+    print_p "Find factorial of:"
     readint
-    >= 28 dup
-    jif error
     call factorial
-    println_p
-    j exit
-
-error: push "Please provide a number less than 27"
-    println_p
-    j main
-
-exit: push "Complete."
     println_p

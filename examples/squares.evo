@@ -2,11 +2,11 @@
 -> 0
 <- ctr 
 
-loop: -> ctr                  
-    print                       # print the value of ctr
+loop:                  
+    print ctr                  # print the value of ctr
     print_p " -> "
     println_p * dup            # calculate and print the square
     set ctr + ctr 1            # ctr += 1
 
-push 100 ctr               # jump to loop, if counter less than 100
-j< loop                         
+-> 100 ctr               # jump to loop, if counter less than 100
+j< loop           

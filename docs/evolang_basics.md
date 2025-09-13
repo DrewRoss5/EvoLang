@@ -201,9 +201,10 @@ Labels function similarly to labels in assembly, and are declared as so
 ```
 <label_name>:
 ```
-In general, a label should be immediately be followed by the first instruction it jumps to, with further instructions on the following lines. By style conventions, following lines should be indented. The following is an example of a label that cubes the top value of the stack
+In general, a label should be immediately be followed by a new line, then the first instruction it jumps to, with further instructions on the following lines. By style conventions, following lines should be indented. The following is an example of a label that cubes the top value of the stack
 ```
-cube_num: dup
+cube_num:
+    dup
     dup
     mul
     mul
@@ -223,10 +224,11 @@ This can be used to implement conditionals, or a loop, as seen in this example
 ```
 push 10             # push 10 onto the stack to start a counter
 
-loop: println       # print the current counter value
-sub 1               # subtract 1 from the counter
-dup                 # duplicate the counter to be used for comparison
-jif loop neq 0      # restart the loop, if the counter is not equal to zero
+loop: 
+    println             # print the current counter value
+    sub 1               # subtract 1 from the counter
+    dup                 # duplicate the counter to be used for comparison
+    jif loop neq 0      # restart the loop, if the counter is not equal to zero
 
 ```
 Finally, labels can be called before they are declared, so the following code is valid, and will print `123`
@@ -234,7 +236,8 @@ Finally, labels can be called before they are declared, so the following code is
 push 666                # push an arbitrary value to the stack
 j main                  # jump to main program, skipping print_label
 
-print_label: println    # print the top value of the stack
+print_label: 
+    println    # print the top value of the stack
     j exit              # exit the program
 
 main:  

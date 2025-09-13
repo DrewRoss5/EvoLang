@@ -195,7 +195,7 @@ void Parser::parse_inst(const Token& token){
 void Parser::parse_label(const Token& token){
     if (this->_labels.count(token.text))
         throw std::runtime_error(std::format("Error on line {}: redeclaration of label \"{}\"" , this->_line_no, token.text));
-    this->_labels[token.text] = this->_inst_no - 1;
+    this->_labels[token.text] = this->_inst_no;
 }
 
 // parses the instructions for a single expression in reverse ordeer

@@ -4,8 +4,8 @@ read
 <- str 
 print_p "Times to print: "
 readint 
-loop: -> str
-    println_p 
+loop:
+    println_p str
     dup sub 1
     j!= 0 loop 
  

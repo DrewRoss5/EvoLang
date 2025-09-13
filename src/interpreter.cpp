@@ -262,7 +262,6 @@ void Interpreter::_arr_op(const Instruction& inst){
                 throw std::runtime_error(std::format("Error on line {}: The \"at\" instruction expects at least two values on the stack.", this->_line_no));
             collection = this->stack_pop();
             index = this->stack_pop();
-            
             if (index.get_type() != ValueType::TYPE_INT)
                 throw std::runtime_error(std::format("Error on line {}: Index values must be of integer type", this->_line_no));
             try{

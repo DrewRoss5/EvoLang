@@ -1,17 +1,19 @@
 j main
 
 # squares the top value of the stack
-square: dup 
-    *
+square: 
+    mul dup 
     ret
 
 # cubes the top value of the stack
-cube: dup
+cube: 
+    dup
     call square
     mul
     ret
 
 # main program
-main: push 5
+main: 
+    push 5
     call cube
     println_p

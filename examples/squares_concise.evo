@@ -1,7 +1,3 @@
-# this program displays the square of every number up to 100
--> 0                               # push zero to the stack
-
-loop: -> dup          
-    println_p mul dup              # calculate and print the square
-    + 1                            # add one to the counter
-j< loop 100 dup                    # jump to the loop if the counter is < 100
+0                         
+loop: 
+   pop j< 9999 dup loop + 1 println_p * print_p " -> " print dup dup 
