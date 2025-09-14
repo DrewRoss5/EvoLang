@@ -10,8 +10,12 @@ factorial:
     break: 
         ret
 
+error:
+    println_p "Please choose a value less than 13"
+
 main:
     print_p "Find factorial of:"
     readint
+    j>= error 13 dup 
     call factorial
     println_p
