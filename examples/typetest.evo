@@ -1,0 +1,15 @@
+print 5
+print_p " -> "
+println_p type
+
+print TRUE
+print_p " -> "
+println_p type
+
+print 'A'
+print_p " -> "
+println_p type
+
+print "Really cool string"
+print_p " -> "
+println_p type
