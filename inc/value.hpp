@@ -11,6 +11,7 @@ enum class ValueType{
     TYPE_CHAR,
     TYPE_STR,
     TYPE_NAME,
+    TYPE_VALTYPE,
     TYPE_NULL,
 };
 
@@ -30,6 +31,8 @@ class Value{
         ~Value(){};
         ValueType get_type() const {return this->_type;}
         std::string to_string() const;
+        bool as_bool() const;
+        char as_char() const;
         Value get_index(size_t index) const;
         size_t get_len() const;
         bool is_intergral() const;

@@ -29,6 +29,7 @@ class Interpreter{
         void _var_op(const Instruction& inst);
         void _io_op(const Instruction& inst);
         void _arr_op(const Instruction& inst);
+        void _type_op(const Instruction& inst);
     public:
         Value stack_pop();
         void stack_push(const Value& val);

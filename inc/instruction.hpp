@@ -37,6 +37,8 @@ enum class InstructionType{
     INST_READINT,
     INST_AT,
     INST_LEN,
+    INST_TYPE,
+    INST_CONVERT
 };
 
 struct Instruction{

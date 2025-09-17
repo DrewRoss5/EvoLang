@@ -23,6 +23,7 @@ class Parser{
         void parse_word(const Token& token);
         void parse_inst(const Token& token);
         void parse_label(const Token& token);
+        void parse_type(const Token& token);
     public:
         Parser() {}
         Parser(const std::vector<Token>& tokens) : _tokens(tokens) {}

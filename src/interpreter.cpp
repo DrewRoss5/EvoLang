@@ -291,6 +291,60 @@ void Interpreter::_arr_op(const Instruction& inst){
     }
 }
 
+// runs a type or conversion operation
+void Interpreter::_type_op(const Instruction& inst){
+    int int_val;
+    Value val, type, result;
+    switch (inst.op_code){
+        case InstructionType::INST_TYPE:
+            if (this->_stack.empty())
+                throw std::runtime_error(std::format("Error on line {}: insufficient stack data for 'type' command", this->_line_no));
+            val = this->stack_pop();
+            result = Value(ValueType::TYPE_VALTYPE, static_cast<int>(val.get_type()));
+            break;
+        case InstructionType::INST_CONVERT:
+            if (this->_stack.size() < 2)
+                throw std::runtime_error(std::format("Error on line {}: insufficient stack data for 'conv' command", this->_line_no));
+            type = this->stack_pop();
+            val = this->stack_pop();
+            if (type.get_type() != ValueType::TYPE_VALTYPE)
+                throw std::runtime_error(std::format("Error on line {}: Invalid type for conversion", this->_line_no));
+            try{
+                switch (static_cast<ValueType>(std::get<int>(type.get_value()))){
+                    case ValueType::TYPE_INT:
+                        // strings are non-integral values, and must be handled seprately
+                        if (val.get_type() == ValueType::TYPE_STR){
+                            int_val = std::stoi(std::get<std::string>(val.get_value()));
+                            result = Value(ValueType::TYPE_INT, int_val);
+                        }
+                        else
+                            result = Value(ValueType::TYPE_INT, val.as_int());
+                        break;
+                    case ValueType::TYPE_CHAR:
+                        result = Value(ValueType::TYPE_CHAR, val.as_char());
+                        break;
+                    case ValueType::TYPE_BOOL:
+                        result = Value(ValueType::TYPE_BOOL, val.as_bool());
+                        break;
+                    case ValueType::TYPE_STR:
+                        result = Value(ValueType::TYPE_STR, val.to_string());
+                        break;
+                }
+            }
+            catch (std::runtime_error e){
+                throw std::runtime_error(std::format("Error on line {}: {}", this->_line_no, e.what()));
+            }
+            catch (const std::invalid_argument & e) {
+                throw std::runtime_error(std::format("Error on line {}: Non-integer input recived for readint", this->_line_no));
+            }
+            catch (const std::out_of_range & e) {
+                throw std::runtime_error(std::format("Error on line {}: Out-of-range input recived for readint", this->_line_no));
+            }
+            break;
+    }
+    this->stack_push(result);
+}
+
 // INTERPRETER FUNCTIONS FOLLOW
 // runs a list of instrunctions produced by the parser
 void Interpreter::_run_bytecode(){
@@ -354,6 +408,10 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_AT:
             case InstructionType::INST_LEN:
                 this->_arr_op(inst);
+                break;
+            case InstructionType::INST_TYPE:
+            case InstructionType::INST_CONVERT:
+                this->_type_op(inst);
                 break;
         }
         this->_next_op++;

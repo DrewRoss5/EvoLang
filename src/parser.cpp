@@ -65,6 +65,8 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"readint", InstructionType::INST_READINT},
     {"at", InstructionType::INST_AT},
     {"len", InstructionType::INST_LEN},
+    {"type", InstructionType::INST_TYPE},
+    {"conv", InstructionType::INST_CONVERT}
 };
 
 // parses a literal expression, evaluates the value and creates a push instruction for it 
@@ -114,7 +116,8 @@ void Parser::parse_word(const Token& token){
             this->_inst_no++;
         }
         // parse the word as a label (simply push it to the word stack)
-        this->_word_stack.push_back(token.text);
+        else
+            this->_word_stack.push_back(token.text);
     }
 }
 
@@ -192,10 +195,24 @@ void Parser::parse_inst(const Token& token){
     }
 }
 
+// parses a label
 void Parser::parse_label(const Token& token){
     if (this->_labels.count(token.text))
         throw std::runtime_error(std::format("Error on line {}: redeclaration of label \"{}\"" , this->_line_no, token.text));
     this->_labels[token.text] = this->_inst_no;
+}
+
+// parses a value type
+void Parser::parse_type(const Token& token){
+    std::unordered_map<std::string, ValueType> type_map{
+        {"int", ValueType::TYPE_INT},
+        {"bool", ValueType::TYPE_BOOL},
+        {"char", ValueType::TYPE_CHAR},
+        {"string", ValueType::TYPE_STR}
+    };
+    Value val = Value(ValueType::TYPE_VALTYPE, static_cast<int>(type_map[token.text]));
+    this->_instructions.emplace_back(InstructionType::INST_PUSH, val);
+    this->_inst_no++;
 }
 
 // parses the instructions for a single expression in reverse ordeer
@@ -222,6 +239,9 @@ std::vector<Instruction> Parser::parse_expr(bool clear){
                 break;
             case TokenType::LABEL_T:
                 this->parse_label(token);
+                break;
+            case TokenType::TYPE_T:
+                this->parse_type(token);
                 break;
         }
     }

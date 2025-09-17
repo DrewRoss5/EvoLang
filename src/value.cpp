@@ -4,6 +4,15 @@
 #include <iostream>
 #include "../inc/value.hpp"
 
+// associates the four main value types with their names as strings, using the numeric enum values as an index
+const char* TYPE_ARR[]{
+    "int",
+    "bool",
+    "char",
+    "string"
+};
+
+// returns true if the value is an integral type
 bool Value::is_intergral() const{
     std::unordered_map<ValueType, short> lookup = {
         {ValueType::TYPE_INT, 0},
@@ -25,6 +34,40 @@ int Value::as_int() const{
     
 }
 
+/// returns a string representation of the value, used for printing or conversion
+std::string Value::to_string() const{
+    switch (this->_type){
+        case ValueType::TYPE_INT:
+            return std::to_string(std::get<int>(this->_val));
+        case ValueType::TYPE_STR:
+        case ValueType::TYPE_NAME:
+            return std::get<std::string>(this->_val);
+        case ValueType::TYPE_BOOL:
+            return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
+        case ValueType::TYPE_CHAR:
+            return std::string(1, std::get<char>(this->_val));
+        case ValueType::TYPE_VALTYPE:
+            return TYPE_ARR[std::get<int>(this->_val)];
+        case ValueType::TYPE_NULL:
+            return "";
+    }
+    return "ERROR TYPE";
+}
+
+// converts a value to a boolen, if the value is not an integral type, this will throw an error
+bool Value::as_bool() const{
+    if (!this->is_intergral())
+        throw std::runtime_error("Invalid type for boolean conversion");
+    return this->as_int() != 0;
+}
+
+// converts a value to a character, if the value is not a integer, this will throw an error
+char Value::as_char() const{
+    if (this->_type == ValueType::TYPE_STR)
+        return std::get<std::string>(this->_val)[0];
+    return static_cast<char>(std::get<int>(this->_val));
+}
+
 // creates any integral type Value from an integer 
 Value Value::from_int(ValueType type, int val){
     switch (type){
@@ -35,24 +78,6 @@ Value Value::from_int(ValueType type, int val){
     return Value(ValueType::TYPE_NULL, "");
 }
 
-// returns a string representation of the value, used for printing
-std::string Value::to_string() const{
-    switch (this->_type){
-        case ValueType::TYPE_INT:
-            return std::to_string(std::get<int>(this->_val));
-        case ValueType::TYPE_STR:
-        case ValueType::TYPE_NAME:
-            return std::get<std::string>(this->_val);
-            break;
-        case ValueType::TYPE_BOOL:
-            return (std::get<bool>(this->_val)) ? "TRUE" : "FALSE";
-        case ValueType::TYPE_CHAR:
-            return std::string(1, std::get<char>(this->_val));
-        case ValueType::TYPE_NULL:
-            return "";
-    }
-    return "ERROR TYPE";
-}
 
 // returns the value at a given index, raises an error if this is not a collection type, or if the index is out of range
 Value Value::get_index(size_t index) const{

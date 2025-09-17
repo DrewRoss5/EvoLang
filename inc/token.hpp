@@ -11,6 +11,7 @@ enum class TokenType{
     INST_T,
     WORD_T,
     LABEL_T,
+    TYPE_T,
     NULL_T
 };
 
