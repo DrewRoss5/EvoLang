@@ -125,13 +125,13 @@ void Interpreter::_comp_op(const Instruction& inst){
         throw std::runtime_error(std::format("Error on line {}: comparison operations require at least two values on the stack", this->_line_no));
     Value right_val = this->stack_pop();
     Value left_val = this->stack_pop();
-    int comparison_offset {16};
+    int comparison_offset {17};
     bool result;
     switch (inst.op_code){
         case InstructionType::INST_NEQ:
         case InstructionType::INST_EQ:
             // this is some black magic
-            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 14);
+            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 15);
             this->stack_push(Value(ValueType::TYPE_BOOL, result));
             return;
         case InstructionType::INST_LESS:
@@ -365,6 +365,9 @@ void Interpreter::_run_bytecode(){
                 break;
             case InstructionType::INST_SIZE:
                 this->stack_push(Value(ValueType::TYPE_INT, static_cast<int>(this->_stack.size())));
+                break;
+            case InstructionType::INST_CLEAR:
+                this->_stack.clear();
                 break;
             case InstructionType::INST_ADD:
             case InstructionType::INST_SUB:
