@@ -1,0 +1,30 @@
+# This program shows off type conversion from strings to integers in Evo, it reads a number from the user as
+# a string, converts it to an integer and squares it
+
+j main
+
+error:
+    println_p "Error: invalid integer recieved"
+    println_p ""                                # create a new line
+    set ctr 0
+    clear  
+
+main:
+    print_p "Please enter a number to be squared: "
+    set intStr read
+    set ctr 0 
+
+val_loop:               # this loop validates that each character in the recieved string is a digit
+    at intStr ctr       # read the current character
+    j< error '0' dup    # print an error message if the character's ascii value is less than 0's
+    j> error '9'        # print an error message if the character's ascii value is greater than 9's
+    set ctr + ctr 1     # ctr++
+    len intStr
+    j> val_loop ctr     # restart the loop if the counter is less than string's size
+
+square:
+    print_p "Square: "
+    conv int intStr     # convert the input to an integer
+    mul dup             # calculuate the input's square
+    println_p
+
