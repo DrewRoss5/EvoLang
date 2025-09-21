@@ -71,7 +71,7 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
 };
 
 // parses a literal expression, evaluates the value and creates a push instruction for it 
-void Parser::parse_literal(const Token& token){
+void Parser::_parse_literal(const Token& token){
     Value val;
     bool bool_val;
     int int_val;
@@ -96,7 +96,7 @@ void Parser::parse_literal(const Token& token){
 }
 
 // parses a non-keyword name, checking the next token to determine how to handle it
-void Parser::parse_word(const Token& token){
+void Parser::_parse_word(const Token& token){
     // the next instruction is "set" and needs only the variable name
     if (!this->_tokens.empty() && this->_tokens.back().text == "set" || this->_tokens.back().text == "<-"){
         this->_word_stack.push_back(token.text);
@@ -123,7 +123,7 @@ void Parser::parse_word(const Token& token){
 }
 
 // parses a named instruction
-void Parser::parse_inst(const Token& token){
+void Parser::_parse_inst(const Token& token){
     InstructionType op_code = inst_map.at(token.text);
     Value arg_val;
     std::string var_name, label_name, condtion;
@@ -197,14 +197,14 @@ void Parser::parse_inst(const Token& token){
 }
 
 // parses a label
-void Parser::parse_label(const Token& token){
+void Parser::_parse_label(const Token& token){
     if (this->_labels.count(token.text))
         throw std::runtime_error(std::format("Error on line {}: redeclaration of label \"{}\"" , this->_line_no, token.text));
     this->_labels[token.text] = this->_inst_no;
 }
 
 // parses a value type
-void Parser::parse_type(const Token& token){
+void Parser::_parse_type(const Token& token){
     std::unordered_map<std::string, ValueType> type_map{
         {"int", ValueType::TYPE_INT},
         {"bool", ValueType::TYPE_BOOL},
@@ -230,19 +230,19 @@ std::vector<Instruction> Parser::parse_expr(bool clear){
             case TokenType::INT_T:
             case TokenType::CHAR_T:
             case TokenType::STR_T:
-                this->parse_literal(token);
+                this->_parse_literal(token);
                 break;
             case TokenType::WORD_T:
-                this->parse_word(token);
+                this->_parse_word(token);
                 break;
             case TokenType::INST_T:
-                this->parse_inst(token);
+                this->_parse_inst(token);
                 break;
             case TokenType::LABEL_T:
-                this->parse_label(token);
+                this->_parse_label(token);
                 break;
             case TokenType::TYPE_T:
-                this->parse_type(token);
+                this->_parse_type(token);
                 break;
         }
     }

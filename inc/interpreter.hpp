@@ -21,6 +21,7 @@ class Interpreter{
         size_t _pop_return();
         void _push_return(size_t );
         void _run_bytecode();
+        void _stack_op(const Instruction& inst);
         void _arith_op(const Instruction& inst);
         void _logic_op(const Instruction& inst);
         void _comp_op(const Instruction& inst);

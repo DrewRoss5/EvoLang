@@ -1,15 +1,15 @@
 print 5
-print_p " -> "
+print_p ' '
 println_p type
 
 print TRUE
-print_p " -> "
+print_p ' '
 println_p type
 
 print 'A'
-print_p " -> "
+print_p ' '
 println_p type
 
-print "Really cool string"
-print_p " -> "
+print "Really cool text"
+print_p ' '
 println_p type

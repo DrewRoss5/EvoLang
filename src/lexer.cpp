@@ -104,13 +104,6 @@ bool is_int(const std::string str){
     return true;
 }
 
-// ensures a character literal is valid, and returns the character
-char parse_char(const std::string& lit){
-    if (lit.size() != 3 || lit[2] != '\'' || lit[1] == '\'')
-        throw std::runtime_error("Invalid character literal");
-    return lit[1];
-}
-
 // parses a single line expression, and returns its tokens
 std::vector<Token> tokenize_expr(std::string& expr){
     std::vector<std::string> words = split_str(expr);
@@ -146,8 +139,16 @@ std::vector<Token> tokenize_expr(std::string& expr){
         // check if the word is a charater and parse it if so
         else if (word[0] == '\''){
             Token tmp(TokenType::CHAR_T, "");
-            tmp.text.push_back(parse_char(word));
-            tokens.push_back(tmp);
+            if (word.size() == 3 && word.back() == '\'')
+                tmp.text.push_back(word[1]);
+            // check if the character is a space
+            else if (word.size() == 1 &&(i + 1) < words.size() && words[i + 1] == "'"){
+                tmp.text = " ";
+                i++;
+            }
+            else
+                throw (std::runtime_error("Invalid character literal"));
+            tokens.emplace_back(tmp);
         }
         else if (word.back() == ':'){
             tokens.emplace_back(TokenType::LABEL_T, word.substr(0, word.size() - 1));

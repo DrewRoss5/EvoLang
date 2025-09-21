@@ -57,6 +57,29 @@ Value Interpreter::stack_pop(){
 }
 
 // PROGRAM INSTRUCTIONS FOLLOW
+// runs a stack manipulation operation
+void Interpreter::_stack_op(const Instruction& inst){
+    switch (inst.op_code){
+        case InstructionType::INST_POP:
+            this->stack_pop();
+            break;
+        case InstructionType::INST_DUP:
+            this->stack_dup();
+            break;
+        case InstructionType::INST_PUSH:
+            if (!inst.arg.has_value())
+                throw std::runtime_error(std::format("Error on line {}: illegal instruction", this->_line_no));
+            this->stack_push(inst.arg.value());
+            break;
+        case InstructionType::INST_SIZE:
+            this->stack_push(Value(ValueType::TYPE_INT, static_cast<int>(this->_stack.size())));
+            break;
+        case InstructionType::INST_CLEAR:
+            this->_stack.clear();
+            break;
+    }
+}
+
 // runs an arithmetic operation
 void Interpreter::_arith_op(const Instruction& inst){
     // ensure there at least two values on the stack to pop
@@ -353,21 +376,11 @@ void Interpreter::_run_bytecode(){
         inst = this->_instructions[this->_next_op];
         switch (inst.op_code){
             case InstructionType::INST_POP:
-                this->stack_pop();
-                break;
             case InstructionType::INST_DUP:
-                this->stack_dup();
-                break;
             case InstructionType::INST_PUSH:
-                if (!inst.arg.has_value())
-                    throw std::runtime_error(std::format("Error on line {}: illegal instruction", this->_line_no));
-                this->stack_push(inst.arg.value());
-                break;
             case InstructionType::INST_SIZE:
-                this->stack_push(Value(ValueType::TYPE_INT, static_cast<int>(this->_stack.size())));
-                break;
             case InstructionType::INST_CLEAR:
-                this->_stack.clear();
+                this->_stack_op(inst);
                 break;
             case InstructionType::INST_ADD:
             case InstructionType::INST_SUB:
