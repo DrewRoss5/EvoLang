@@ -69,6 +69,7 @@ std::map<std::string, TokenType> token_map = {
     {"TRUE", TokenType::BOOL_T},
     {"FALSE", TokenType::BOOL_T},
     {"int", TokenType::TYPE_T},
+    {"float", TokenType::TYPE_T},
     {"bool", TokenType::TYPE_T},
     {"char", TokenType::TYPE_T},
     {"string", TokenType::TYPE_T}

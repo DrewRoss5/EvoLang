@@ -70,12 +70,13 @@ char Value::as_char() const{
     return static_cast<char>(std::get<int>(this->_val));
 }
 
-// creates any integral type Value from an integer 
+// creates any integral (or floating point) type Value from an integer 
 Value Value::from_int(ValueType type, int val){
     switch (type){
         case ValueType::TYPE_INT: return Value(type, val);
         case ValueType::TYPE_BOOL: return Value(type, static_cast<bool>(val));
         case ValueType::TYPE_CHAR: return Value(type, static_cast<char>(val));
+        case ValueType::TYPE_FLOAT: return Value(type, static_cast<float>(val));
     }
     return Value(ValueType::TYPE_NULL, "");
 }

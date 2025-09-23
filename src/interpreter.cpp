@@ -344,11 +344,11 @@ void Interpreter::_type_op(const Instruction& inst){
             break;
         case InstructionType::INST_CONVERT:
             if (this->_stack.size() < 2)
-                throw std::runtime_error(std::format("Error on line {}: insufficient stack data for 'conv' command", this->_line_no));
+                throw std::runtime_error(std::format("Type Error on line {}: insufficient stack data for 'conv' command", this->_line_no));
             type = this->stack_pop();
             val = this->stack_pop();
             if (type.get_type() != ValueType::TYPE_VALTYPE)
-                throw std::runtime_error(std::format("Error on line {}: Invalid type for conversion", this->_line_no));
+                throw std::runtime_error(std::format("Type Error on line {}: Invalid type for conversion", this->_line_no));
             try{
                 switch (static_cast<ValueType>(std::get<int>(type.get_value()))){
                     case ValueType::TYPE_INT:
@@ -359,6 +359,11 @@ void Interpreter::_type_op(const Instruction& inst){
                         }
                         else
                             result = Value(ValueType::TYPE_INT, val.as_int());
+                        break;
+                    case ValueType::TYPE_FLOAT:
+                        if (val.get_type() != ValueType::TYPE_INT)
+                            throw std::runtime_error(std::format("Type Error on line {}: Can only convert integer values to float", this->_line_no));
+                        result = Value::from_int(ValueType::TYPE_FLOAT, std::get<int>(val.get_value()));
                         break;
                     case ValueType::TYPE_CHAR:
                         result = Value(ValueType::TYPE_CHAR, val.as_char());
@@ -375,10 +380,10 @@ void Interpreter::_type_op(const Instruction& inst){
                 throw std::runtime_error(std::format("Error on line {}: {}", this->_line_no, e.what()));
             }
             catch (const std::invalid_argument & e) {
-                throw std::runtime_error(std::format("Error on line {}: Non-integer input recived for readint", this->_line_no));
+                throw std::runtime_error(std::format("Value Error on line {}: Non-integer input recived for readint", this->_line_no));
             }
             catch (const std::out_of_range & e) {
-                throw std::runtime_error(std::format("Error on line {}: Out-of-range input recived for readint", this->_line_no));
+                throw std::runtime_error(std::format("Value Error on line {}: Out-of-range input recived for readint", this->_line_no));
             }
             break;
     }

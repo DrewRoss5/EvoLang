@@ -213,6 +213,7 @@ void Parser::_parse_label(const Token& token){
 void Parser::_parse_type(const Token& token){
     std::unordered_map<std::string, ValueType> type_map{
         {"int", ValueType::TYPE_INT},
+        {"float", ValueType::TYPE_FLOAT},
         {"bool", ValueType::TYPE_BOOL},
         {"char", ValueType::TYPE_CHAR},
         {"string", ValueType::TYPE_STR}

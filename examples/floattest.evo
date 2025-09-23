@@ -1,2 +1,4 @@
-add 2.22 4.44
-println_p
+add 1.11 2.22          # add 1.11 to 2.22
+-> 2                   # push two to the stack
+conv float             # convert 2 to 2.0
+println_p mul          # print (3.33 * 2.0)
