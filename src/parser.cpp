@@ -7,6 +7,7 @@
 #include "../inc/token.hpp"
 #include "../inc/parser.hpp"
 
+
 // associates each instruction keyword with it's op code
 const std::unordered_map<std::string, InstructionType> inst_map = {
     {"push", InstructionType::INST_PUSH},
@@ -75,14 +76,19 @@ void Parser::_parse_literal(const Token& token){
     Value val;
     bool bool_val;
     int int_val;
+    float float_val;
     switch (token.type){
-        case TokenType::BOOL_T:
-            bool_val = (token.text == "TRUE");
-            val = Value(ValueType::TYPE_BOOL, bool_val);
-            break;
         case TokenType::INT_T:
             int_val = std::stoi(token.text);
             val = Value(ValueType::TYPE_INT, int_val);
+            break;
+        case TokenType::FLOAT_T:
+            float_val = std::stof(token.text);
+            val = Value(ValueType::TYPE_FLOAT, float_val);
+            break;
+        case TokenType::BOOL_T:
+            bool_val = (token.text == "TRUE");
+            val = Value(ValueType::TYPE_BOOL, bool_val);
             break;
         case TokenType::CHAR_T:
             val = Value(ValueType::TYPE_CHAR, token.text[0]);
@@ -226,8 +232,9 @@ std::vector<Instruction> Parser::parse_expr(bool clear){
         token = this->_tokens.back();
         this->_tokens.pop_back();
         switch (token.type){
-            case TokenType::BOOL_T:
             case TokenType::INT_T:
+            case TokenType::FLOAT_T:
+            case TokenType::BOOL_T:
             case TokenType::CHAR_T:
             case TokenType::STR_T:
                 this->_parse_literal(token);

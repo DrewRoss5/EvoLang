@@ -5,6 +5,7 @@
 
 enum class TokenType{
     INT_T,
+    FLOAT_T,
     STR_T,
     CHAR_T,
     BOOL_T,

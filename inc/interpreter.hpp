@@ -23,6 +23,7 @@ class Interpreter{
         void _run_bytecode();
         void _stack_op(const Instruction& inst);
         void _arith_op(const Instruction& inst);
+        Value _float_op(const Instruction& inst, float rhs, float lhs);
         void _logic_op(const Instruction& inst);
         void _comp_op(const Instruction& inst);
         void _not_op(const Instruction& inst);

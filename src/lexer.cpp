@@ -94,14 +94,27 @@ std::vector<std::string> split_str(std::string& str, char delim = ' '){
     return out;
 }
 
-// checks if a string is an integer
-bool is_int(const std::string str){
-    // ensure each character is a digit between 0 and 9
-    for (char chr : str){
-        if (chr < '0' || chr > '9')
-            return false;
+// checks if a string is a number, returns INT_T if the string is an integer, FLOAT_T if the string is a float, and NULL_T if the string is non-numeric
+TokenType num_type(const std::string& str){
+    bool radix_encountered {false};
+    TokenType ret_type {TokenType::INT_T};
+    // ensure each character is a digit between 0 and 9, or '.'
+    char chr;
+    for (int i = 0; i < str.size(); i++){
+        chr = str[i];
+        if (chr == '.'){
+            // check if this is the first radix we've seen, and that it's followed by something
+            if (!radix_encountered && ((i + 1) < str.size())){
+                radix_encountered = true;
+                ret_type = TokenType::FLOAT_T;
+            }
+            else
+                return TokenType::NULL_T;
+        }
+        else if (chr < '0' || chr > '9') 
+            return TokenType::NULL_T;
     }
-    return true;
+    return ret_type;
 }
 
 // parses a single line expression, and returns its tokens
@@ -119,9 +132,10 @@ std::vector<Token> tokenize_expr(std::string& expr){
             tokens.emplace_back(token_map[word], word);
             continue;
         }
-        // check if the word is a literal
-        if (is_int(word))
-            tokens.emplace_back(TokenType::INT_T, word);
+        // check if the word is a numeric literal
+        TokenType str_num = num_type(word);
+        if (str_num != TokenType::NULL_T)
+            tokens.emplace_back(str_num, word);
         // check if the word is a string and parse it if so
         else if (word[0] == '"'){
             // word size checked here to account for the possibility of a string starting with 

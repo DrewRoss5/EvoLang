@@ -39,6 +39,8 @@ std::string Value::to_string() const{
     switch (this->_type){
         case ValueType::TYPE_INT:
             return std::to_string(std::get<int>(this->_val));
+        case ValueType::TYPE_FLOAT:
+            return std::to_string(std::get<float>(this->_val));
         case ValueType::TYPE_STR:
         case ValueType::TYPE_NAME:
             return std::get<std::string>(this->_val);

@@ -7,6 +7,7 @@
 
 enum class ValueType{
     TYPE_INT,
+    TYPE_FLOAT,
     TYPE_BOOL,
     TYPE_CHAR,
     TYPE_STR,
@@ -18,14 +19,14 @@ enum class ValueType{
 class Value{
     private:
         ValueType _type;
-        std::variant<int, bool, char, std::string> _val;
+        std::variant<int, float, bool, char, std::string> _val;
     public:
         Value() : _type(ValueType::TYPE_NULL) {}
         template <typename T>
         Value(ValueType type, const T& value);
         template <typename T>
         void set_value(const T& value);
-        const std::variant<int, bool, char, std::string>& get_value() const {return this->_val;}
+        const std::variant<int, float, bool, char, std::string>& get_value() const {return this->_val;}
         int as_int() const;
         static Value from_int(ValueType type, int val);
         ~Value(){};
@@ -40,7 +41,6 @@ class Value{
         bool operator==(const Value& rhs);
         bool operator!=(const Value& rhs);
         bool operator>(const Value& rhs);
-
 };
 
 template <typename T>

@@ -90,8 +90,15 @@ void Interpreter::_arith_op(const Instruction& inst){
     // ensure values match and are of the right type
     if (right_val.get_type() != left_val.get_type())
         throw std::runtime_error(std::format("Error on line {}: arithmetic cannot be performed on mismatch types", this->_line_no));
-    if (right_val.get_type() != ValueType::TYPE_INT)
+    if (right_val.get_type() != ValueType::TYPE_INT && right_val.get_type() != ValueType::TYPE_FLOAT)
         throw std::runtime_error(std::format("Error on line {}: invalid type for arithmetic operation", this->_line_no));
+    // check if the values are float values
+    Value result;
+    if (right_val.get_type() == ValueType::TYPE_FLOAT){
+        result = this->_float_op(inst, std::get<float>(right_val.get_value()), std::get<float>(left_val.get_value()));
+        this->stack_push(result);
+        return;
+    }
     int rhs {std::get<int>(right_val.get_value())}, lhs {std::get<int>(left_val.get_value())}, retval;
     switch (inst.op_code){
     case InstructionType::INST_ADD:
@@ -110,8 +117,18 @@ void Interpreter::_arith_op(const Instruction& inst){
         retval = lhs % rhs;
         break;
     }
-    Value result = Value(ValueType::TYPE_INT, retval);
+    result = Value(ValueType::TYPE_INT, retval);
     this->stack_push(result);
+}
+
+// runs a floating point arithmetic expression
+Value Interpreter::_float_op(const Instruction& inst, float rhs, float lhs){
+    switch (inst.op_code){
+        case InstructionType::INST_ADD: return Value(ValueType::TYPE_FLOAT, lhs + rhs);
+        case InstructionType::INST_SUB: return Value(ValueType::TYPE_FLOAT, lhs - rhs);
+        case InstructionType::INST_MUL: return Value(ValueType::TYPE_FLOAT, lhs * rhs);
+        case InstructionType::INST_DIV: return Value(ValueType::TYPE_FLOAT, lhs / rhs);
+    }
 }
 
 // runs a logical operation
