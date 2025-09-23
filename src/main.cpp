@@ -11,6 +11,7 @@ enum CommandCode{
     HELP,
     RUN,
     SHELL,
+    VERSION
 };
 
 void print_error(const std::string& message){
@@ -22,12 +23,14 @@ void print_help(){
         "Command:",
         "help",
         "run",
-        "shell"
+        "shell",
+        "version"
     };
     std::vector<std::string> args{
         "Args:",
         "",
         "<file_name>",
+        "",
         ""
     };
     std::vector<std::string> descriptions{
@@ -35,6 +38,7 @@ void print_help(){
         "displays this menu",
         "executes a .evo source file",
         "opens an interactive evo shell",
+        "displays the current program version"
     };
     for (int i = 0; i < 4; i++){
         std::cout << std::setw(12) << std::left << commands[i];
@@ -83,7 +87,7 @@ int main(int argc, char** argv){
         print_error("This program takes at least one argument, use \"evo help\" for more info");
         return 1;
     }
-    std::unordered_map<std::string, CommandCode> command_map = {{"help", HELP}, {"run", RUN}, {"shell", SHELL}};
+    std::unordered_map<std::string, CommandCode> command_map = {{"help", HELP}, {"run", RUN}, {"shell", SHELL}, {"version", VERSION}};
     if (!command_map.count(argv[1])){
         print_error("Unrecognized command, use \"evo help\" for more info");
         return 1;
@@ -106,6 +110,9 @@ int main(int argc, char** argv){
             break;
         case SHELL:
             run_shell(); 
+            break;
+        case VERSION:
+            std::cout << "EvoLang Version 0.2.0" << std::endl;
             break;
     }
     return 0;
