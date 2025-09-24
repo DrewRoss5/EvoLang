@@ -59,6 +59,8 @@ Value Interpreter::stack_pop(){
 // PROGRAM INSTRUCTIONS FOLLOW
 // runs a stack manipulation operation
 void Interpreter::_stack_op(const Instruction& inst){
+    Value top, second, arg;
+    int index;
     switch (inst.op_code){
         case InstructionType::INST_POP:
             this->stack_pop();
@@ -70,6 +72,26 @@ void Interpreter::_stack_op(const Instruction& inst){
             if (!inst.arg.has_value())
                 throw std::runtime_error(std::format("Error on line {}: illegal instruction", this->_line_no));
             this->stack_push(inst.arg.value());
+            break;
+        case InstructionType::INST_SWAP:
+            if (this->_stack.size() < 2)
+                throw std::runtime_error(std::format("Stack Error on line {}: The 'swap' command needs at least two values on the stack", this->_line_no));
+            // swap the top and second to top values
+            top = this->stack_pop();
+            second = this->stack_pop();
+            this->stack_push(top);
+            this->stack_push(second);
+            break;
+        case InstructionType::INST_PEEK:
+            if (this->_stack.size() < 2)
+                throw std::runtime_error(std::format("Stack Error on line {}: The 'swap' command needs at least two values on the stack", this->_line_no));
+            arg = this->stack_pop();
+            if (arg.get_type() != ValueType::TYPE_INT)
+                throw std::runtime_error(std::format("Value Error on line {}: Invalid value type for peek index", this->_line_no));
+            index = std::get<int>(arg.get_value());
+            if (index >= this->_stack.size())
+                throw std::runtime_error(std::format("Range Error on line {}: Index for peek instruction out of range", this->_line_no));
+            this->stack_push(this->_stack[this->_stack.size() - (1 + index)]);
             break;
         case InstructionType::INST_SIZE:
             this->stack_push(Value(ValueType::TYPE_INT, static_cast<int>(this->_stack.size())));
@@ -165,13 +187,13 @@ void Interpreter::_comp_op(const Instruction& inst){
         throw std::runtime_error(std::format("Error on line {}: comparison operations require at least two values on the stack", this->_line_no));
     Value right_val = this->stack_pop();
     Value left_val = this->stack_pop();
-    int comparison_offset {17};
+    int comparison_offset {19};
     bool result;
     switch (inst.op_code){
         case InstructionType::INST_NEQ:
         case InstructionType::INST_EQ:
             // this is some black magic
-            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 15);
+            result = (left_val == right_val) == static_cast<bool>(static_cast<int>(inst.op_code) - 17);
             this->stack_push(Value(ValueType::TYPE_BOOL, result));
             return;
         case InstructionType::INST_LESS:
@@ -402,6 +424,8 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_PUSH:
             case InstructionType::INST_SIZE:
             case InstructionType::INST_CLEAR:
+            case InstructionType::INST_PEEK:
+            case InstructionType::INST_SWAP:
                 this->_stack_op(inst);
                 break;
             case InstructionType::INST_ADD:

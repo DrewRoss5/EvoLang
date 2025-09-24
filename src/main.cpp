@@ -40,7 +40,7 @@ void print_help(){
         "opens an interactive evo shell",
         "displays the current program version"
     };
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < 5; i++){
         std::cout << std::setw(12) << std::left << commands[i];
         std::cout << std::setw(15) << std::left << args[i];
         std::cout << descriptions[i] << std::endl;

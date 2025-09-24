@@ -9,6 +9,8 @@ enum class InstructionType{
     INST_PUSH,
     INST_POP,
     INST_CLEAR,
+    INST_PEEK,
+    INST_SWAP,
     INST_SIZE,
     INST_DUP,
     INST_ADD,

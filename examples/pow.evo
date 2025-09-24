@@ -1,0 +1,25 @@
+j main
+
+pow:
+    eq 0 dup
+    jif exit            # exit if the counter is equal to 0
+    swap                # put the current value on top
+    peek 2              # read the original number (third value from the top)
+    mul                 # multiply the current value by the original
+    swap                # set the counter to top
+    sub 1
+    j pow
+
+main:
+    print_p  "Enter a number (or press Ctrl+C to exit): "
+    readint              # read the number to raise to a power
+    print_p "Power to raise to: "   
+    readint              # read the power to raise it to
+    push 1               # push 1 (the result) to the stack
+    swap
+    call pow 
+
+exit:
+    pop
+    println_p            # print the result
+    j main

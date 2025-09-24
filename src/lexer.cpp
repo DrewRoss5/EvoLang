@@ -11,6 +11,8 @@ std::map<std::string, TokenType> token_map = {
     {"->", TokenType::INST_T},
     {"pop", TokenType::INST_T},
     {"clear", TokenType::INST_T},
+    {"peek", TokenType::INST_T},
+    {"swap", TokenType::INST_T},
     {"dup", TokenType::INST_T},
     {"size", TokenType::INST_T},
     {"add", TokenType::INST_T},

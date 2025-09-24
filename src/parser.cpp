@@ -15,6 +15,8 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"pop", InstructionType::INST_POP},
     {"clear", InstructionType::INST_CLEAR},
     {"dup", InstructionType::INST_DUP},
+    {"peek", InstructionType::INST_PEEK},
+    {"swap", InstructionType::INST_SWAP},
     {"size", InstructionType::INST_SIZE},
     {"add", InstructionType::INST_ADD},
     {"+", InstructionType::INST_ADD},
