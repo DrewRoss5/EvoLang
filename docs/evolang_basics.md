@@ -19,17 +19,22 @@ println mul push 2 add push 5 push 5
 ```
 Will print the result of `2 * (5 + 5)`
 ## Stack commands:
-There are three basic stack commands supported, those commands are:
+There are four basic stack commands supported, those commands are:
 - push
 - pop
 - duplicate
+- clear
 ### Push:
-This instruction pushes a new value to the stack, currently there are four supported data types that can be pushed to the stack, being integers, strings, booleans, and single characters. All of these can be directly pushed on to the stack with the push command, as seen below:
+This instruction pushes a new value to the stack, currently there are five supported data types that can be pushed to the stack, being integers, floating points, strings, booleans, and single characters. All of these can be directly pushed on to the stack with the push command, as seen below:
 ```
 push 123
 push "Hello, World!"
 push TRUE
 push 'f'
+```
+This will result in the following stack
+```
+[123, "Hello, World!", TRUE, 'f']
 ```
 The push command can also be used with the "->" alias, as seen below
 ```
@@ -47,6 +52,10 @@ This code can also be expressed as
 ```
 println mul 2 add 5 5
 ```
+Which will result in the following stack:
+```
+[10]
+```
 
 ### Pop:
 The pop command is straight-forward. it simply removes the top value of the stack and returns nothing. For instance, the following code 
@@ -57,7 +66,11 @@ push 4
 pop
 mul
 ```
-Will result in a stack of one, with a top value of 40, instead of 20, as 4 was pushed before `mul` was called. 
+Will result in the following stack:
+```
+[40]
+```
+Because 4 was popped before `mul` was called, so we get `(5 * 8)` on top of the stack. 
 
 
 ### Duplicate:
@@ -66,7 +79,11 @@ Duplication is done through the `dup` instruction, this simply makes a copy of t
 push 2
 add dup
 ```
-Will result in a value of 4 on top of the stack, as the value `2` is duplicated, so the `add` instruction evaluates `2 + 2`, despite `2` having only been explicitly pushed to the stack once. With the exception of `print` and `println`, all instructions that require inputs pop from the stack, so if you need a particular value for multiple operations, it's important to either duplicate the value, or store it to a variable (more detail on variables can be found further in this guide.)
+Will result in the following stack:
+```
+[4]
+```
+Because the value `2` is duplicated, so the `add` instruction evaluates `2 + 2`, despite `2` having only been explicitly pushed to the stack once. With the exception of `print` and `println`, all instructions that require inputs pop from the stack, so if you need a particular value for multiple operations, it's important to either duplicate the value, or store it to a variable (more detail on variables can be found further in this guide.)
 
 ### Size:
 The size command pushes the current number of items on the stack to the top of stack. This count does not include the result of the size operation itself, so for instance if you have a stack containing
@@ -82,6 +99,17 @@ The resulting stack will be
 ["hi", TRUE, 5, 3]
 ```
 
+### Clear:
+The `clear` command is rather straightforward, and pops all values from the stack.
+Running the following code:
+```
+-> 1
+-> "Hi"
+-> 16
+clear
+```
+Will result in a completely empty stack.
+
 
 ## Basic Commands
 ### Arithmetic Instructions:
@@ -91,14 +119,20 @@ push 10
 push 5
 sub
 ```
-Will result in a stack with a top value of `5`
+Will result in the following stack:
+```
+[5]
+```
 Whereas 
 ```
 push 5
 push 10
 sub
 ```
-Will result in a stack with a top of value of `-5`<br>
+Will result in
+```
+[-5]
+```
 `add`, `sub`, `mul`, `div` and `mod` can also be accessed with the `+`, `-`, `*`, `/`, and `%` aliases respectively.
 
 ### Logical Instructions:
@@ -106,11 +140,18 @@ Evo has support for the `and`, `or`, `xor`, and `not` logical operations. These 
 ```
 xor 42 666
 ```
-Will result in a stack with a top value of `644`. Whereas
+Will result in 
+```
+[644]
+```
+Whereas
 ```
 and TRUE FALSE
 ```
-Will result in a stack with a top value of `FALSE`.<br>
+Will result in 
+```
+[FALSE]
+```
 The `not` pops a single value off the top of the stack, and will push `TRUE` if the value is equivalent to zero, so both
 ```
 not FALSE
@@ -193,7 +234,10 @@ set x 9
 add 10 x
 push x
 ```
-The top value of the stack will still be `9` and not `19` as `x` is still set to`9`.
+The stack will be
+```
+[19, 9]
+```
 
 ## Labels and Functions
 ### Labels 
@@ -231,6 +275,25 @@ loop:
     jif loop neq 0      # restart the loop, if the counter is not equal to zero
 
 ```
+Jump-if commands can be used in compound operations, for the `>, <, ==, !=, >=, <=`
+operators, inserting the appropriate comparsion before the jump command as seen in the following example
+```
+# This program reads an integer from the user, and displays whether or not the integer is equal to 5
+
+print_p "Enter an integer: "
+readint
+j== message2 5
+
+message1:
+    println_p "Provided number is NOT equal to five"
+    j exit
+
+message2:
+    println_p "Provided number IS equal to five"
+
+exit: 
+```
+
 Finally, labels can be called before they are declared, so the following code is valid, and will print `123`
 ```
 push 666                # push an arbitrary value to the stack
@@ -256,4 +319,36 @@ As with labels in assembly, labels in Evo do not, by default, return execution t
 Calling a function that contains `ret` using `j` or `jif` will result in undefined behavior, as unlike the jump commands `call` pushes the current location to Evo's call stack. Calling a function within a function is also valid, as is recursion, see the `factorial.evo` example in this repository for an example of this 
 
 
+## Type Commands
+There are two commands that are directly relevant to the type system, those commands are:
+- type
+- conv
 
+### Type
+The `type` command pushes the type of the current top value of the stack, note that it does pop the value, so to get a value's type without getting rid of the value, `type dup` is used. 
+
+For example, the following code:
+```
+-> TRUE
+type dup
+```
+Results in a stack of 
+```
+[TRUE, bool]
+```
+
+### Conv
+The `conv` command provides support for converting values from one type to another. `conv` expects the top value on the stack to be a type. (Valid types are `int`, `float`, `char`, `string` and `bool`), and the value to convert to be below it. For example, to convert the integer 65 to the ascii character 'A', the following code would be used:
+```
+-> 65
+-> char
+conv
+```
+Which will result in the following stack:
+```
+['A']
+```
+The above code can also be expressed as:
+```
+conv char 65
+```
