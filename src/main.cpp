@@ -112,7 +112,7 @@ int main(int argc, char** argv){
             run_shell(); 
             break;
         case VERSION:
-            std::cout << "EvoLang Version 0.2.0" << std::endl;
+            std::cout << "EvoLang Version 0.2.1" << std::endl;
             break;
     }
     return 0;
