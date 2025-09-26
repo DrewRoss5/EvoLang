@@ -1,4 +1,5 @@
 # EvoLang Changelog
+- v0.2.1: Implement additional stack commands
 - v0.2.0: Add floating point support
 - v0.1.6: Minor bug fix with character parsing
 - v0.1.5: Add typing commands (type, conv), and add a dedicated clear command to clear all values on the stack

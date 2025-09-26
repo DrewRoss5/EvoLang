@@ -6,13 +6,15 @@ making control flow and data handling highly transparent.
 Evo is still early in development, with many features planned for future versions! Here's a brief, non-comprehensive list of planned, and current features
 ## 📕 Current Features
 - Stack Instructions
-- Basic arithmetic and logic operatiosn
+- Basic arithmetic and logic operations
 - Simple command line I/O
 - Functions/Loops
 - Variables
+- Floating point support
+- Type Conversions
 ##  🚀 Planned Features:
 - In-line conditionals
-- Arrays
+- Arrays (In Progress)
 - File I/O support
 - Support for custom extensions
   

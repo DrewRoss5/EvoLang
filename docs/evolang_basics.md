@@ -19,11 +19,15 @@ println mul push 2 add push 5 push 5
 ```
 Will print the result of `2 * (5 + 5)`
 ## Stack commands:
-There are four basic stack commands supported, those commands are:
+There are seven basic stack commands supported, those commands are:
 - push
 - pop
 - duplicate
+- size
 - clear
+- swap
+- peek
+
 ### Push:
 This instruction pushes a new value to the stack, currently there are five supported data types that can be pushed to the stack, being integers, floating points, strings, booleans, and single characters. All of these can be directly pushed on to the stack with the push command, as seen below:
 ```
@@ -110,6 +114,37 @@ clear
 ```
 Will result in a completely empty stack.
 
+### Swap:
+The `swap` command switches the top value of the stack with the second-to-top value of the stack. For example, if you have the following stack:
+```
+[1, 2, 3]
+```
+And run the following program:
+```
+swap
+println
+```
+This will print `2`, and result in the stack of 
+```
+[1, 3, 2]
+```
+
+### Peek:
+We can use the `peek` command to retrieve values that are not on top of the stack. The peek command expects and integer index to be the top value of the stack when called, this index represents how many items from the top of the stack "down" the desired item is, `0` represents the top element, `1` represents the second-to-top element, and so on. The retrived value is pushed onto the stack, without removing the original.
+
+For example, if we have this stack:
+```
+[2, 3, 5, 7]
+```
+and run 
+```
+peek 2
+println
+```
+This will print `3`, and result in the following stack
+```
+[2, 3, 5, 7, 3]
+```
 
 ## Basic Commands
 ### Arithmetic Instructions:
