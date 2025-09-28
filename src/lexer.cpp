@@ -68,6 +68,7 @@ std::map<std::string, TokenType> token_map = {
     {"len", TokenType::INST_T},
     {"conv", TokenType::INST_T},
     {"type", TokenType::INST_T},
+    {"?", TokenType::INST_T},
     {"TRUE", TokenType::BOOL_T},
     {"FALSE", TokenType::BOOL_T},
     {"int", TokenType::TYPE_T},

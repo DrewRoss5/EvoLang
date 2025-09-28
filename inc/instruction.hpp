@@ -41,7 +41,8 @@ enum class InstructionType{
     INST_AT,
     INST_LEN,
     INST_TYPE,
-    INST_CONVERT
+    INST_CONVERT,
+    INST_COND
 };
 
 struct Instruction{

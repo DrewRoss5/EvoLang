@@ -70,7 +70,8 @@ const std::unordered_map<std::string, InstructionType> inst_map = {
     {"at", InstructionType::INST_AT},
     {"len", InstructionType::INST_LEN},
     {"type", InstructionType::INST_TYPE},
-    {"conv", InstructionType::INST_CONVERT}
+    {"conv", InstructionType::INST_CONVERT},
+    {"?", InstructionType::INST_COND}
 };
 
 // parses a literal expression, evaluates the value and creates a push instruction for it 

@@ -10,8 +10,6 @@
 #include "../inc/instruction.hpp"
 #include "../inc/interpreter.hpp"
 
-
-
 // STACK INSTRUCTIONS FOLLOW
 // pushes a value on to the top of stack
 void Interpreter::stack_push(const Value& val){
@@ -412,6 +410,16 @@ void Interpreter::_type_op(const Instruction& inst){
     this->stack_push(result);
 }
 
+// runs a conditional expression
+void Interpreter::_cond_op(){
+    if (this->_stack.size() < 3)
+        throw std::runtime_error(std::format("Stack Error on line {}: Conditional expressions require at least 3 values on the stack", this->_line_no));
+    Value true_val = this->stack_pop();
+    Value false_val = this->stack_pop();
+    Value cond_val = this->stack_pop();
+    this->stack_push(cond_val.as_bool() ? true_val : false_val);
+}
+
 // INTERPRETER FUNCTIONS FOLLOW
 // runs a list of instrunctions produced by the parser
 void Interpreter::_run_bytecode(){
@@ -474,6 +482,9 @@ void Interpreter::_run_bytecode(){
             case InstructionType::INST_TYPE:
             case InstructionType::INST_CONVERT:
                 this->_type_op(inst);
+                break;
+            case InstructionType::INST_COND:
+                this->_cond_op();
                 break;
         }
         this->_next_op++;

@@ -1,0 +1,6 @@
+print_p "Enter a number: "
+readint                      # read "num" from the user
+== 0 mod 2                   # push (num % 2) == 0 to the stack
+? "even" "odd"               # push "even" or "odd" to the stack, depending on the value of the previous instruction
+print_p "The number is: "
+println_p                    # print either "even" or "odd"
