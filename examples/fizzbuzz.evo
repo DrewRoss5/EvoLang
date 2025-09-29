@@ -1,0 +1,21 @@
+println_p "Welcome to FizzBuzz!" 
+print_p "Number to count to: "
+set target add 1 readint
+set ctr 1                       # initialize the loop counter to 1
+loop:
+    mod 3 ctr
+    == 0                        # determine if the current counter is divisble by three
+    dup
+    print_p  ? "Fizz" ""        # print "Fizz" if so
+    mod 5 ctr
+    == 0                        # determine if the current counter is 5
+    dup
+    print_p  ? "Buzz" ""        # print "Buzz" if so
+    ! or                         # check if neither of the previous comparisons are true
+    print_p ? "" ctr            # print the counter if the previous value is true
+    println_p  ""               # print a newline
+    set ctr add ctr 1
+    != target ctr
+    jif loop                    # restart the loop if the counter is not the target number
+
+    

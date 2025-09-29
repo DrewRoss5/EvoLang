@@ -274,6 +274,16 @@ The stack will be
 [19, 9]
 ```
 
+## Inline Conditionals:
+Evo has limited support for inline conditionals to determine which of two possible values to push onto the stack, both values must be on the stack temporarily, however only one is kept. Conditional pushes are accessed using the '?' operator (pronounced as condition). The command expects three values on the stack, the top value is the value that will be pushed if the conditional is true or non-zero, the second-to-top value is the value that will be pushed if the value is false, or zero, and the third-to-top value is  the value to determine (can be any integral type, though should be a boolean by convention). The following is an insecure password check as an example of how to use conditionals
+```
+print_p "Password: "
+read                                                # read a password from the user
+== "T0P_SECRET!"                                    # push (password == "T0P_SECRET!") to the stack
+? "Password is correct" "Password is not correct"   # determine the message to display, based on if the previous value is TRUE
+println_p                                           # print the message
+```
+
 ## Labels and Functions
 ### Labels 
 Labels function similarly to labels in assembly, and are declared as so
