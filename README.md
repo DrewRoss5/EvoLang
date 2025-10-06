@@ -15,7 +15,6 @@ Evo is still early in development, with many features planned for future version
 - Inline conditionals
 ##  🚀 Planned Features:
 - File I/O support
-- Support for custom extensions
   
 Stay tuned for further developments!
 
